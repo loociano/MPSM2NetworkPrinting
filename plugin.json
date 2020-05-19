@@ -1,0 +1,8 @@
+{
+    "name": "Monoprice Select Mini V2 Network Connectivity",
+    "author": "Luc Rubio",
+    "description": "Network support for Monoprice Select Mini V2 printers.",
+    "version": "0.0.1",
+    "api": "7.1",
+    "i18n-catalog": "cura"
+}
