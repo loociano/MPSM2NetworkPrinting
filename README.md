@@ -9,13 +9,34 @@ This software is unofficial and not affiliated with Monoprice.
 ## How to install
 
 1. **Important**: Due to [a bug](https://github.com/Ultimaker/Cura/issues/7739) in Cura, only one network plugin can be enabled when adding network printers by IP address. Please click on **Marketplace** and disable `UM3 Network Printing` plugin temporarily to add the printer.
+
 1. In Cura, go to Settings → Printer →  **Add Printer**.
+
 1. Click **Add printer by IP**.
+
+![](https://github.com/loociano/MPSM2NetworkPrinting/blob/master/resources/png/cura-add-a-printer.png?raw=true)
+
 1. Type network address and click **Add**.
+
+![](https://github.com/loociano/MPSM2NetworkPrinting/master/resources/png/cura-add-printer-by-ip-address.png?raw=true)
+
 1. If connection is successful, the printer details are displayed. Click **Connect**.
+
+![](https://github.com/loociano/MPSM2NetworkPrinting/master/resources/png/cura-add-printer-by-ip-address-connect.png?raw=true)
+
 1. Click **Next** to select default Machine Settings.
+
+![](https://github.com/loociano/MPSM2NetworkPrinting/master/resources/png/cura-machine-settings.png?raw=true)
+
 1. The printer is added. You may check the status of the printer in the **Monitor** tab.
+
+![](https://github.com/loociano/MPSM2NetworkPrinting/blob/master/resources/png/cura-monitor-tab.png?raw=true)
+
 1. To start a print, slice a model and click **Print over network**.
+
+![](https://github.com/loociano/MPSM2NetworkPrinting/blob/master/resources/png/cura-prepare-model.png?raw=true)
+
+![](https://github.com/loociano/MPSM2NetworkPrinting/blob/master/resources/png/cura-sending-print-job.png?raw=true)
 
 ## Author
 
