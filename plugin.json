@@ -3,6 +3,6 @@
     "author": "Luc Rubio",
     "description": "Network support for Monoprice Select Mini V2 printers.",
     "version": "0.0.2",
-    "api": "7.2",
+    "api": "7.2.0",
     "i18n-catalog": "cura"
 }
