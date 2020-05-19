@@ -4,6 +4,8 @@
 
 This plugin for [Cura](https://github.com/ultimaker/cura) enables network interoperability with Monoprice Select Mini V2 printers.
 
+This software is unofficial and not affiliated with Monoprice.
+
 ## Author
 
 Luc Rubio <luc@loociano.com>
