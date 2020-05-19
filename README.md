@@ -8,7 +8,14 @@ This software is unofficial and not affiliated with Monoprice.
 
 ## How to install
 
-1. **Important**: Due to [a bug](https://github.com/Ultimaker/Cura/issues/7739) in Cura, only one network plugin can be enabled when adding network printers by IP address. Please click on **Marketplace** and disable `UM3 Network Printing` plugin temporarily to add the printer.
+* **Recommended**: go to Cura → Marketplace. Install plugin **Network support for Monoprice Select Mini V2**.
+
+* Manually: download this repository and move to the Cura plugins directory. On Windows, it is 
+`C:\Program Files\Ultimaker Cura 4.6\plugins\`.
+
+## How to use
+
+1. **Important**: due to [a bug](https://github.com/Ultimaker/Cura/issues/7739) in Cura, only one network plugin can be enabled when adding network printers by IP address. Please click on **Marketplace** and disable `UM3 Network Printing` plugin temporarily to add the printer.
 
 1. In Cura, go to Settings → Printer →  **Add Printer**.
 
@@ -44,7 +51,7 @@ Luc Rubio <luc@loociano.com>
 
 ## License
 
-See LICENSE.
+See [LICENSE](https://github.com/loociano/MPSM2NetworkPrinting/blob/master/LICENSE).
 
 ## Donate
 
