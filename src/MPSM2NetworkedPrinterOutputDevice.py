@@ -179,6 +179,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._is_busy = False
     self._job_upload_message.hide()
     self._api_client.cancel_upload_print()
+    self._api_client.cancel_print()  # force cancel
     PrintJobUploadCancelMessage().show()
     self.writeFinished.emit()
     self.onPrinterUpload.emit(False)

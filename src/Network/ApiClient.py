@@ -2,7 +2,7 @@
 Copyright 2020 Luc Rubio <luc@loociano.com>
 Plugin is licensed under the GNU Lesser General Public License v3.0.
 """
-from typing import Callable
+from typing import Callable, Optional
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkReply, QHttpPart, QNetworkRequest, \
@@ -36,7 +36,7 @@ class ApiClient:
     reply = self._manager.get(self._create_empty_request('/inquiry'))
     self._add_callback(reply, on_finished)
 
-  def start_print(self, on_finished: Callable = None) -> None:
+  def start_print(self, on_finished: Optional[Callable] = None) -> None:
     """Tells the printer to start printing.
 
     Args:
@@ -66,7 +66,7 @@ class ApiClient:
     reply = self._manager.get(self._create_empty_request('/set?cmd={P:P}'))
     self._add_callback(reply, on_finished)
 
-  def cancel_print(self, on_finished: Callable = None) -> None:
+  def cancel_print(self, on_finished: Optional[Callable] = None) -> None:
     """# Tells the printer to cancel the print.
     If called when not printing, it is a no-op.
 
@@ -74,7 +74,8 @@ class ApiClient:
       on_finished: callback after request completes.
     """
     reply = self._manager.get(self._create_empty_request('/set?cmd={P:X}'))
-    self._add_callback(reply, on_finished)
+    if on_finished:
+      self._add_callback(reply, on_finished)
 
   def upload_print(self, filename: str, payload: bytes, on_finished: Callable,
                    on_progress: Callable) -> None:
