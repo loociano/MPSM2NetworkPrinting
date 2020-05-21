@@ -92,14 +92,16 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._load_monitor_tab()
     self._set_ui_elements()
 
-  # Produces main object for rendering the Printer Monitor tab.
   @pyqtProperty(QObject, notify=printerStatusChanged)
   def printer(self) -> PrinterOutputModel:
+    """Produces main object for rendering the Printer Monitor tab."""
     if self._printer_raw_response.upper() != 'OK':
       self._on_printer_status_changed(self._printer_raw_response)
-    else:
-      Logger.log('d', self._printer_output_model.extruders[0].__dict__)
     return self._printer_output_model
+
+  @pyqtProperty(bool, notify=onPrinterUpload)
+  def isUploading(self) -> bool:
+    return self._is_busy
 
   @pyqtSlot(name='startPrint')
   def start_print(self) -> None:

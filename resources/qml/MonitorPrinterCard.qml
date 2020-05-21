@@ -210,7 +210,7 @@ Item {
             implicitWidth: 96 * screenScaleFactor
             visible: printer && printer.activePrintJob && (printer.activePrintJob.state === 'active' || printer.activePrintJob.state === 'paused')
             onClicked: base.enabled ? OutputDevice.pauseOrResumePrint() : {}
-            enabled: true // TODO
+            enabled: true
         }
 
         Button {
@@ -245,7 +245,7 @@ Item {
             implicitWidth: 96 * screenScaleFactor
             visible: printer && printer.activePrintJob && (printer.activePrintJob.state === 'active' || printer.activePrintJob.state === 'paused')
             onClicked: base.enabled ? OutputDevice.cancelPrint() : {}
-            enabled: true // TODO
+            enabled: true
         }
 
         Button {
@@ -280,7 +280,7 @@ Item {
             implicitWidth: 150 * screenScaleFactor
             visible: printer && printer.activePrintJob && printer.activePrintJob.state === 'not_started'
             onClicked: base.enabled ? OutputDevice.startPrint() : {}
-            enabled: true // TODO
+            enabled: !OutputDevice.isUploading
         }
     }
 }

@@ -9,12 +9,12 @@ I18N_CATALOG = i18nCatalog('cura')
 
 
 class PrintJobUploadIsPrintingMessage(Message):
-  """Message displayed when the user attempts to upload print when another
-  upload is in progress."""
+  """Message displayed when the user attempts to upload print when the printer
+   is printing."""
 
   def __init__(self) -> None:
     super().__init__(
         title=I18N_CATALOG.i18nc('@info:title', 'Printer is busy'),
         text=I18N_CATALOG.i18nc('@info:status',
-                                'Cannot upload when the printer is printing.'),
+                                'Cancel the print to upload a new model.'),
         lifetime=0)

@@ -21,6 +21,6 @@ class MPSM2PrinterOutputModel(PrinterOutputModel):
     """Gets printer state.
 
     Returns:
-      Printer state.
+      Printer state. Can be 'idle' or 'printing'.
     """
     return self._printer_state
