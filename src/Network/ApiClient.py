@@ -1,6 +1,6 @@
 # Copyright 2020 Luc Rubio <luc@loociano.com>
 # Plugin is licensed under the GNU Lesser General Public License v3.0.
-from typing import Callable, Tuple
+from typing import Callable
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkReply, QHttpPart, QNetworkRequest, QHttpMultiPart, QNetworkAccessManager
@@ -9,9 +9,6 @@ from UM.Logger import Logger
 
 
 class ApiClient:
-    # In order to avoid garbage collection we keep the callbacks in this list.
-    _anti_gc_callbacks = []
-
     def __init__(self, address: str, on_error: Callable) -> None:
         super().__init__()
         self._manager = QNetworkAccessManager()
@@ -61,10 +58,9 @@ class ApiClient:
 
         reply = self._manager.post(request, http_multi_part)
         self._addCallback(reply, on_finished)
-        self._anti_gc_callbacks.append(on_progress)
         reply.uploadProgress.connect(on_progress)
         self._cached_multiparts[reply] = http_multi_part  # prevent HTTP multi-part to be garbage-collected.
-        self._upload_reply = reply # cache to cancel
+        self._upload_reply = reply  # cache to cancel
 
     def cancelUploadPrint(self) -> None:
         Logger.log('d', 'Cancelling upload request.')
@@ -88,27 +84,22 @@ class ApiClient:
         request.setAttribute(QNetworkRequest.FollowRedirectsAttribute, True)
         return request
 
-    @staticmethod
-    def _parseReply(reply: QNetworkReply) -> Tuple[int, str]:
-        status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
-        try:
-            response = bytes(reply.readAll()).decode()
-            return status_code, response
-        except (UnicodeDecodeError, ValueError) as err:
-            Logger.logException('e', 'Could not parse the printer response: %s', err)
-            return status_code, err
-
     def _addCallback(self, reply: QNetworkReply, on_finished: Callable) -> None:
         def parse() -> None:
-            self._anti_gc_callbacks.remove(parse)
             self._upload_reply = None
 
             if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute) is None or reply.error() > 0:
                 Logger.log('e', 'No response received from printer.')
                 return
 
-            status_code, raw_response = self._parseReply(reply)
-            on_finished(raw_response)
+            on_finished(self._parseReply(reply))
 
-        self._anti_gc_callbacks.append(parse)
         reply.finished.connect(parse)
+
+    @staticmethod
+    def _parseReply(reply: QNetworkReply) -> str:
+        try:
+            return bytes(reply.readAll()).decode()
+        except (UnicodeDecodeError, ValueError) as err:
+            Logger.logException('e', 'Could not parse the printer response: %s', err)
+            return err
