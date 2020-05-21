@@ -9,7 +9,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 # Background thread that polls printer status. Status contains printer state, temperatures and printing progress.
 class PrinterHeartbeat(QThread):
     REQUEST_TIMEOUT_SECS = 2
-    POLL_INTERVAL_SECS = 5
+    POLL_INTERVAL_SECS = 2
     heartbeatSignal = pyqtSignal(str, str)  # address, raw response
     onPrinterUpload = pyqtSignal(bool)
 
