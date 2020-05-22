@@ -2,12 +2,14 @@
 Copyright 2020 Luc Rubio <luc@loociano.com>
 Plugin is licensed under the GNU Lesser General Public License v3.0.
 """
+# pylint:disable=import-error
 from cura.PrinterOutput.Models.PrintJobOutputModel import PrintJobOutputModel
 from cura.PrinterOutput.PrinterOutputController import PrinterOutputController
 from cura.PrinterOutput.PrinterOutputDevice import PrinterOutputDevice
 
 
 class MPSM2OutputController(PrinterOutputController):
+  """Printer Output Controller for Monoprice Select Mini V2 printers."""
 
   def __init__(self, output_device: PrinterOutputDevice) -> None:
     """Constructor.

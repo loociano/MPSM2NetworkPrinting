@@ -10,10 +10,12 @@ from UM.FileHandler.WriteFileJob import WriteFileJob
 from UM.FileHandler.FileWriter import FileWriter
 from UM.Scene.SceneNode import SceneNode
 
+# pylint:disable=import-error
 from cura.CuraApplication import CuraApplication
 
 
 class GCodeWriteFileJob(WriteFileJob):
+  """Represents a g-code write file job."""
   def __init__(self, file_handler: Optional[FileHandler],
                nodes: List[SceneNode]) -> None:
     # GCodeWriter only supports TextMode
@@ -24,4 +26,9 @@ class GCodeWriteFileJob(WriteFileJob):
         CuraApplication.getInstance().getPrintInformation().jobName))
 
   def get_gcode_output(self) -> bytes:
+    """Produces a readable g-code output of the model.
+
+    Returns:
+      UTF-8 stream.
+    """
     return self.getStream().getvalue().encode('utf-8')

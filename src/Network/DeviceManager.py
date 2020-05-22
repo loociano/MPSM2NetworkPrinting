@@ -12,10 +12,10 @@ from UM.Settings.ContainerRegistry import ContainerRegistry
 from UM.Signal import Signal
 
 from cura.CuraApplication import CuraApplication
-from cura.PrinterOutput.PrinterOutputDevice import ConnectionType
 from cura.Settings.CuraStackBuilder import CuraStackBuilder
 from cura.Settings.GlobalStack import GlobalStack
 
+# pylint:disable=relative-beyond-top-level
 from .ApiClient import ApiClient
 from .PrinterHeartbeat import PrinterHeartbeat
 from ..MPSM2NetworkedPrinterOutputDevice \

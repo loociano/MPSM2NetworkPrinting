@@ -12,6 +12,7 @@ from UM.Logger import Logger
 from UM.i18n import i18nCatalog
 from UM.Scene.SceneNode import SceneNode
 
+# pylint:disable=import-error
 from cura.CuraApplication import CuraApplication
 from cura.PrinterOutput.Models.ExtruderConfigurationModel \
   import ExtruderConfigurationModel
@@ -23,6 +24,7 @@ from cura.PrinterOutput.NetworkedPrinterOutputDevice \
 from cura.PrinterOutput.PrinterOutputDevice \
   import ConnectionType, ConnectionState
 
+# pylint:disable=relative-beyond-top-level
 from .MPSM2OutputController import MPSM2OutputController
 from .Models.MPSM2PrinterOutputModel import MPSM2PrinterOutputModel
 from .Models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
@@ -46,6 +48,10 @@ I18N_CATALOG = i18nCatalog('cura')
 
 
 def _build_printer_conf_model() -> PrinterConfigurationModel:
+  """
+  Returns:
+    Printer's configuration model.
+  """
   printer_configuration_model = PrinterConfigurationModel()
   extruder_conf_model = ExtruderConfigurationModel()
   extruder_conf_model.setPosition(0)
@@ -55,6 +61,8 @@ def _build_printer_conf_model() -> PrinterConfigurationModel:
 
 
 class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
+  """Represents a networked OutputDevice for Monoprice Select Mini V2
+  printers."""
   META_NETWORK_KEY = 'mpsm2_network_key'
   MPSM2_PROPERTIES = {
       b'name': b'Monoprice Select Mini V2',
@@ -115,17 +123,24 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       self._on_printer_status_changed(self._printer_raw_response)
     return self._printer_output_model
 
+  # pylint:disable=invalid-name
   @pyqtProperty(bool, notify=onPrinterUpload)
   def isUploading(self) -> bool:
+    """
+    Returns:
+       true if user is uploading a model to the printer.
+    """
     return self._is_busy
 
   @pyqtSlot(name='startPrint')
   def start_print(self) -> None:
+    """Prints the cached model in printer."""
     Logger.log('d', 'Printing cache.gc.')
     self._api_client.start_print(self._on_print_started)
 
   @pyqtSlot(name='pauseOrResumePrint')
   def pause_or_resume_print(self) -> None:
+    """Pauses or resumes the print job."""
     if self._print_job_model.get_state() == 'paused':
       Logger.log('d', 'Resuming print.')
       self._api_client.resume_print(self._on_print_resumed)
@@ -135,17 +150,20 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
 
   @pyqtSlot(name='cancelPrint')
   def cancel_print(self) -> None:
+    """Cancels the print job."""
     Logger.log('d', 'Cancelling print.')
     self._api_client.cancel_print(self._on_print_cancelled)
 
   # Override
   def connect(self) -> None:
+    """Connects to the printer."""
     Logger.log('d', 'Connecting.')
     super().connect()
     self._update()
 
   # Override
   def close(self) -> None:
+    """Closes the connection to the printer."""
     Logger.log('d', 'Closing.')
     super().close()
     self.setConnectionState(ConnectionState.Closed)
@@ -156,11 +174,22 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
 
   # Override
   # pylint:disable=invalid-name
+  # pylint:disable=unused-argument
   def requestWrite(self, nodes: List[SceneNode],
                    file_name: Optional[str] = None,
                    limit_mimetypes: bool = False,
                    file_handler: Optional[FileHandler] = None,
                    filter_by_machine: bool = False, **kwargs) -> None:
+    """Initiates the job upload to printer.
+    Called when user clicks on button 'Print over the network'.
+
+    Args:
+      nodes: A collection of scene nodes that should be written to the device.
+      file_name: unused.
+      limit_mimetypes: unused.
+      file_handler: The filehandler to use to write the file with.
+      filter_by_machine: unused.
+    """
     Logger.log('d', 'Write to Output Device was requested.')
     if self._job_upload_message.visible:
       PrintJobUploadBlockedMessage().show()
@@ -175,12 +204,26 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     job.start()
 
   def update_printer_status(self, raw_response: str) -> None:
+    """Updates printer status.
+
+    Args:
+      raw_response: HTTP body response containing the printer status.
+    """
     self._printer_raw_response = raw_response
 
   def is_busy(self) -> bool:
+    """
+    Returns:
+      true if the printer is uploading a job.
+    """
     return self._is_busy
 
   def _on_print_job_created(self, job: GCodeWriteFileJob) -> None:
+    """Called when a print job starts to upload.
+
+    Args:
+      job: job that is being uploaded.
+    """
     if not job:
       Logger.log('e', 'No active exported job to upload!')
       return
@@ -192,6 +235,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
                                   self._on_print_job_upload_progress)
 
   def _on_print_upload_cancelled(self) -> None:
+    """Called when the user cancels the print upload."""
     self._is_busy = False
     self._job_upload_message.hide()
     self._api_client.cancel_upload_print()
@@ -201,6 +245,11 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self.onPrinterUpload.emit(False)
 
   def _on_print_upload_completed(self, raw_response: str) -> None:
+    """Called when the print job upload is completed.
+
+    Args:
+      raw_response: HTTP body response from upload request.
+    """
     self._printer_raw_response = raw_response
     if raw_response.upper() == 'OK':
       self._is_busy = False
@@ -214,14 +263,30 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
 
   def _on_print_job_upload_progress(self, bytes_sent: int,
                                     bytes_total: int) -> None:
+    """Called periodically by Cura to update the upload progress.
+
+    Args:
+      bytes_sent: number of bytes already sent to the printer.
+      bytes_total: total bytes to be sent.
+    """
     percentage = (bytes_sent / bytes_total) if bytes_total else 0
     self._job_upload_message.setProgress(percentage * 100)
     self.writeProgress.emit()
 
   def _on_print_started(self, raw_response: str) -> None:
+    """Called when the user starts the print job.
+
+    Args:
+      raw_response: HTTP response to the start request.
+    """
     self._on_print_resumed(raw_response)
 
   def _on_print_resumed(self, raw_response: str) -> None:
+    """Called when the user resumes the print job.
+
+    Args:
+      raw_response: HTTP response to the resume request.
+    """
     self._printer_raw_response = raw_response
     if raw_response.upper() == 'OK':
       self._printer_output_model.updateState('printing')
@@ -231,6 +296,11 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       Logger.log('e', 'Could not resume print')  # TODO message
 
   def _on_print_paused(self, raw_response: str) -> None:
+    """Called when the user pauses the print job.
+
+    Args:
+      raw_response: HTTP response to the pause request.
+    """
     self._printer_raw_response = raw_response
     if raw_response.upper() == 'OK':
       self._printer_output_model.updateState('paused')
@@ -240,6 +310,11 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       Logger.log('e', 'Could not pause print')  # TODO: message
 
   def _on_print_cancelled(self, raw_response: str) -> None:
+    """Called when the user cancels the print job.
+
+    Args:
+      raw_response: HTTP response to the cancel request.
+    """
     self._printer_raw_response = raw_response
     if raw_response.upper() == 'OK':
       self._printer_output_model.updateState('idle')
@@ -250,6 +325,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       Logger.log('e', 'Could not cancel print')  # TODO: message
 
   def _set_ui_elements(self) -> None:
+    """Sets Cura UI elements corresponding to this device."""
     self.setPriority(
         3)  # Make sure the output device gets selected above local file output
     self.setShortDescription(
@@ -261,6 +337,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
         I18N_CATALOG.i18nc('@info:status', 'Connected over the network'))
 
   def _load_monitor_tab(self) -> None:
+    """Loads the QML resources to display the monitor tab in Cura."""
     plugin_registry = CuraApplication.getInstance().getPluginRegistry()
     if not plugin_registry:
       Logger.log('e', 'Could not get plugin registry.')
@@ -273,6 +350,10 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
                                                'MonitorStage.qml')
 
   def _build_printer_output_model(self) -> MPSM2PrinterOutputModel:
+    """
+    Returns:
+      Printer Output Model for this device.
+    """
     printer_output_model = MPSM2PrinterOutputModel(
         self._printer_output_controller)
     printer_output_model.updateKey(self._address)
@@ -285,6 +366,11 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     return printer_output_model
 
   def _on_printer_status_changed(self, raw_response: str) -> None:
+    """Called when the printer status response is received.
+
+    Args:
+      raw_response: HTTP body response to the printer status request.
+    """
     printer_status_model = MPSM2PrinterStatusParser.parse(raw_response)
     if printer_status_model:
       self._printer_output_model.extruders[0].updateHotendTemperature(

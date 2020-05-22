@@ -8,8 +8,10 @@ from UM.Signal import Signal
 from UM.OutputDevice.OutputDeviceManager import ManualDeviceAdditionAttempt
 from UM.OutputDevice.OutputDevicePlugin import OutputDevicePlugin
 
+# pylint:disable=import-error
 from cura.CuraApplication import CuraApplication
 
+# pylint:disable=relative-beyond-top-level
 from .Network.DeviceManager import DeviceManager
 
 
