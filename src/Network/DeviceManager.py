@@ -31,14 +31,6 @@ class DeviceManager(QObject):
   manualAddressChanged = pyqtSignal(str)
   onPrinterUpload = pyqtSignal(bool)
 
-  MPSM2_PROPERTIES = {
-      b'name': b'Monoprice Select Mini V2',
-      b'machine': b'Malyan M200',
-      b'manual': b'true',
-      b'printer_type': b'monoprice_select_mini_v2',
-      b'firmware_version': b'Unknown',
-  }
-
   def __init__(self) -> None:
     super().__init__()
     self._discovered_devices = {}
@@ -102,8 +94,7 @@ class DeviceManager(QObject):
     self._connect_to_active_machine()
 
   def _on_printer_container_removed(self, container) -> None:
-    if container.getName() == DeviceManager.MPSM2_PROPERTIES[b'name'].decode(
-        'utf-8'):
+    if container.getName() == 'Monoprice Select Mini V2':
       device_ids = set(self._discovered_devices.keys())
       # FIXME: this is a simplification.
       for device_id in device_ids:
@@ -135,11 +126,8 @@ class DeviceManager(QObject):
 
     Logger.log('d', 'Received response from printer on address %s: %s.',
                address, response)
-    properties = DeviceManager.MPSM2_PROPERTIES.copy()
-    properties[b'address'] = address.encode('utf-8')
     device = MPSM2NetworkedPrinterOutputDevice(
-        DeviceManager._get_device_id(address), address, properties,
-        ConnectionType.NetworkConnection)
+      DeviceManager._get_device_id(address), address)
     device.onPrinterUpload.connect(self.onPrinterUpload)
     device.update_printer_status(response)
     device.printerStatusChanged.emit()

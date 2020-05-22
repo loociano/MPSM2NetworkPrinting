@@ -3,7 +3,7 @@ Copyright 2020 Luc Rubio <luc@loociano.com>
 Plugin is licensed under the GNU Lesser General Public License v3.0.
 """
 import os
-from typing import List, Optional, Dict
+from typing import List, Optional
 
 from PyQt5.QtCore import pyqtProperty, pyqtSignal, QObject, pyqtSlot
 
@@ -56,16 +56,32 @@ def _build_printer_conf_model() -> PrinterConfigurationModel:
 
 class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   META_NETWORK_KEY = 'mpsm2_network_key'
+  MPSM2_PROPERTIES = {
+      b'name': b'Monoprice Select Mini V2',
+      b'machine': b'Malyan M200',
+      b'manual': b'true',
+      b'printer_type': b'monoprice_select_mini_v2',
+      b'firmware_version': b'Unknown',
+  }
 
   printerStatusChanged = pyqtSignal()
   onPrinterUpload = pyqtSignal(bool)
 
-  def __init__(self, device_id: str, address: str,
-               properties: Dict[bytes, bytes], connection_type: ConnectionType,
-               parent=None) -> None:
-    super().__init__(device_id=device_id, address=address,
-                     properties=properties, connection_type=connection_type,
-                     parent=parent)
+  def __init__(self, device_id: str, address: str, parent=None) -> None:
+    """Constructor
+
+    Args:
+      device_id: 'manual:<ip_address>'
+      address: IP address, for example '192.168.0.70'
+    """
+    MPSM2NetworkedPrinterOutputDevice.MPSM2_PROPERTIES[b'address'] \
+      = address.encode('utf-8')
+    super().__init__(
+        device_id=device_id,
+        address=address,
+        properties=MPSM2NetworkedPrinterOutputDevice.MPSM2_PROPERTIES,
+        connection_type=ConnectionType.NetworkConnection,
+        parent=parent)
     self._printer_output_controller = MPSM2OutputController(self)
     self._printer_raw_response = ''  # HTTP string response body
     self._is_busy = False
