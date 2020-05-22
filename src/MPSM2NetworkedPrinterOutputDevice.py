@@ -184,13 +184,17 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self.writeFinished.emit()
     self.onPrinterUpload.emit(False)
 
-  def _on_print_upload_completed(self) -> None:
-    self._is_busy = False
-    self._job_upload_message.hide()
-    PrintJobUploadSuccessMessage().show()
-    self._api_client.start_print()  # force start
-    self.writeFinished.emit()
-    self.onPrinterUpload.emit(False)
+  def _on_print_upload_completed(self, raw_response: str) -> None:
+    self._printer_raw_response = raw_response
+    if raw_response.upper() == 'OK':
+      self._is_busy = False
+      self._job_upload_message.hide()
+      PrintJobUploadSuccessMessage().show()
+      self._api_client.start_print()  # force start
+      self.writeFinished.emit()
+      self.onPrinterUpload.emit(False)
+    else:
+      Logger.log('e', 'Could not upload print.')
 
   def _on_print_job_upload_progress(self, bytes_sent: int,
                                     bytes_total: int) -> None:
@@ -208,7 +212,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       self._print_job_model.updateState('active')
       self.printerStatusChanged.emit()
     else:
-      Logger.log('d', 'Could not resume print')  # TODO message
+      Logger.log('e', 'Could not resume print')  # TODO message
 
   def _on_print_paused(self, raw_response: str) -> None:
     self._printer_raw_response = raw_response
@@ -217,7 +221,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       self._print_job_model.updateState('paused')
       self.printerStatusChanged.emit()
     else:
-      Logger.log('d', 'Could not pause print')  # TODO: message
+      Logger.log('e', 'Could not pause print')  # TODO: message
 
   def _on_print_cancelled(self, raw_response: str) -> None:
     self._printer_raw_response = raw_response
@@ -227,7 +231,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       self._print_job_model.update_progress(0)
       self.printerStatusChanged.emit()
     else:
-      Logger.log('d', 'Could not cancel print')  # TODO: message
+      Logger.log('e', 'Could not cancel print')  # TODO: message
 
   def _set_ui_elements(self) -> None:
     self.setPriority(
@@ -288,4 +292,4 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
         self._print_job_model.update_progress(
             float(printer_status_model.progress))
       else:
-        Logger.log('d', 'Unknown printer status')  # TODO: message
+        Logger.log('e', 'Unknown printer status')  # TODO: message
