@@ -88,7 +88,7 @@ Item {
             onInvalidInputDetected: invalidTargetHotendTemperatureLabel.visible = true
             onTextEdited: invalidTargetHotendTemperatureLabel.visible = false
             maximumLength: 3
-            placeholderText: catalog.i18nc('@text', '210') // TODO: read current target.
+            placeholderText: targetHotendTemperature !== '' ? targetHotendTemperature : 0
             enabled: true // TODO
             onAccepted: setTargetHotendTemperatureButton.clicked()
         }
