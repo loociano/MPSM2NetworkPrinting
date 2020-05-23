@@ -11,6 +11,7 @@ from UM.Logger import Logger
 from UM.Settings.ContainerRegistry import ContainerRegistry
 from UM.Signal import Signal
 
+# pylint:disable=import-error
 from cura.CuraApplication import CuraApplication
 from cura.Settings.CuraStackBuilder import CuraStackBuilder
 from cura.Settings.GlobalStack import GlobalStack
@@ -23,6 +24,8 @@ from ..MPSM2NetworkedPrinterOutputDevice \
 
 
 class DeviceManager(QObject):
+  """Discovers and manages Monoprice Select Mini V2 printers over the
+  network."""
   META_NETWORK_KEY = 'mpsm2_network_key'
   MANUAL_DEVICES_PREFERENCE_KEY = 'mpsm2networkprinting/manual_instances'
   I18N_CATALOG = i18nCatalog('cura')
@@ -127,7 +130,7 @@ class DeviceManager(QObject):
     Logger.log('d', 'Received response from printer on address %s: %s.',
                address, response)
     device = MPSM2NetworkedPrinterOutputDevice(
-      DeviceManager._get_device_id(address), address)
+        DeviceManager._get_device_id(address), address)
     device.onPrinterUpload.connect(self.onPrinterUpload)
     device.update_printer_status(response)
     device.printerStatusChanged.emit()
@@ -237,7 +240,7 @@ class DeviceManager(QObject):
         MPSM2NetworkedPrinterOutputDevice,
         self._discovered_devices.get(DeviceManager._get_device_id(address)))
     if device and raw_response == 'timeout':
-      if not device.is_busy():
+      if not device.is_busy():  # Request timeout is expected during job upload.
         self.stop()
         return
     if not device:

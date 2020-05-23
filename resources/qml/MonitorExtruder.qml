@@ -65,37 +65,70 @@ Item {
         }
     }
 
-    Cura.TextField {
-        id: targetHotendTemperatureField
-        width: 48 * screenScaleFactor
-        height: setTargetHotendTemperatureButton.height
+    Item {
+        id: targetHotendTemperatureInputFields
+        height: childrenRect.height
         anchors {
-            verticalCenter: parent.verticalCenter
+            top: parent.top
+            //verticalCenter: parent.verticalCenter
             left: targetHotendTemperatureWrapper.right
             leftMargin: 48 * screenScaleFactor
         }
-        // TODO: validation
-        maximumLength: 3
-        placeholderText: catalog.i18nc('@text', '210') // TODO
-        enabled: true // TODO
-        onAccepted: setTargetHotendTemperatureButton.clicked()
-    }
 
-    Cura.SecondaryButton {
-        id: setTargetHotendTemperatureButton
-        anchors {
-            verticalCenter: parent.verticalCenter
-            left: targetHotendTemperatureField.right
-            leftMargin: 8 * screenScaleFactor
+        Cura.TextField {
+            id: targetHotendTemperatureField
+            width: 48 * screenScaleFactor
+            height: setTargetHotendTemperatureButton.height
+            anchors {
+                verticalCenter: setTargetHotendTemperatureButton.verticalCenter
+                left: parent.left
+            }
+            signal invalidInputDetected()
+            onInvalidInputDetected: invalidTargetHotendTemperatureLabel.visible = true
+            onTextEdited: invalidTargetHotendTemperatureLabel.visible = false
+            maximumLength: 3
+            placeholderText: catalog.i18nc('@text', '210') // TODO: read current target.
+            enabled: true // TODO
+            onAccepted: setTargetHotendTemperatureButton.clicked()
         }
-        text: catalog.i18nc('@button', 'Set Target')
-        enabled: true // TODO
-        busy: OutputDevice.has_target_hotend_in_progress
-        onClicked: {
-            const temperature = targetHotendTemperatureField.text
-            // TODO: validate
-            if (!OutputDevice.has_target_hotend_in_progress) {
-                OutputDevice.setTargetHotendTemperature(temperature)
+
+        Label {
+            id: invalidTargetHotendTemperatureLabel
+            anchors {
+                top: targetHotendTemperatureField.bottom
+                topMargin: UM.Theme.getSize('narrow_margin').height
+                left: parent.left
+            }
+            visible: false
+            text: catalog.i18nc('@text', 'Temperature must be between 0ºC and 260ºC.') // TODO: read from constants.
+            font: UM.Theme.getFont('default')
+            color: UM.Theme.getColor('error')
+            renderType: Text.NativeRendering
+        }
+
+        Cura.SecondaryButton {
+            id: setTargetHotendTemperatureButton
+            anchors {
+                top: parent.top
+                //verticalCenter: parent.verticalCenter
+                left: targetHotendTemperatureField.right
+                leftMargin: UM.Theme.getSize('default_margin').width
+            }
+            text: catalog.i18nc('@button', 'Set Target')
+            enabled: true // TODO
+            busy: OutputDevice.has_target_hotend_in_progress
+            onClicked: {
+                const temperature = +targetHotendTemperatureField.text // parse int
+                // TODO: extract constants.
+                if (!Number.isInteger(temperature)
+                    || isNaN(temperature)
+                    || temperature < 0 || temperature > 260) {
+                    targetHotendTemperatureField.invalidInputDetected()
+                    return
+                }
+                if (!OutputDevice.has_target_hotend_in_progress) {
+                    OutputDevice.setTargetHotendTemperature(temperature)
+                }
             }
         }
     }

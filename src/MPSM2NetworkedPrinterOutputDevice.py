@@ -94,7 +94,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._printer_output_controller = MPSM2OutputController(self)
     self._printer_raw_response = ''  # HTTP string response body
     self._is_busy = False
-    self._has_target_hotend_in_progress = False
+    self._requested_hotend_temperature = None  # int
 
     # Set the display name from the properties.
     self.setName(self.getProperty('name'))
@@ -140,23 +140,24 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     Returns:
        true if there is a request to update hot-end temperature in progress.
     """
-    return self._has_target_hotend_in_progress
+    return self._requested_hotend_temperature is not None
 
   @pyqtSlot(str, name='setTargetHotendTemperature')
-  def set_target_hotend_temperature(
-      self,
-      target_hotend_temperature_celsius: str) -> None:
-    Logger.log('d', 'Setting target hotend temperature to %sºC',
-               target_hotend_temperature_celsius)
+  def set_target_hotend_temperature(self, celsius: str) -> None:
+    """Called when the user requests a target hotend temperature.
+
+    Args:
+      celsius: requested target hotend temperature. Can be invalid.
+    """
+    Logger.log('d', 'Setting target hotend temperature to %sºC.', celsius)
     try:
-      self._has_target_hotend_in_progress = True
-      self.hasTargetHotendInProgressChanged.emit()
       self._api_client.set_target_hotend_temperature(
-          int(target_hotend_temperature_celsius),
+          int(celsius),
           self._on_target_hotend_temperature_finished)
+      self._requested_hotend_temperature = int(celsius)
+      self.hasTargetHotendInProgressChanged.emit()
     except ValueError:
-      Logger.log('e', 'Invalid target hotend temperature %s',
-                 target_hotend_temperature_celsius)
+      Logger.log('e', 'Invalid target hotend temperature %s.', celsius)
 
   @pyqtSlot(name='startPrint')
   def start_print(self) -> None:
@@ -357,10 +358,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       raw_response: HTTP response to the target hotend temperature request.
     """
     self._printer_raw_response = raw_response
-    if raw_response.upper() == 'OK':
-      self._has_target_hotend_in_progress = False
-      self.hasTargetHotendInProgressChanged.emit()
-    else:
+    if raw_response.upper() != 'OK':
       # TODO: UI message
       Logger.log('e', 'Could not set target hotend temperature.')
 
@@ -413,25 +411,42 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     """
     printer_status_model = MPSM2PrinterStatusParser.parse(raw_response)
     if printer_status_model:
-      self._printer_output_model.extruders[0].updateHotendTemperature(
-          float(printer_status_model.hotend_temperature))
-      self._printer_output_model.extruders[0].updateTargetHotendTemperature(
-          float(printer_status_model.target_hotend_temperature))
-      self._printer_output_model.updateBedTemperature(
-          float(printer_status_model.bed_temperature))
-      self._printer_output_model.updateTargetBedTemperature(
-          float(printer_status_model.target_bed_temperature))
-      if printer_status_model.state == MPSM2PrinterStatusModel.State.IDLE:
-        self._printer_output_model.updateState('idle')
-        self._print_job_model.updateState('not_started')
-        self._print_job_model.update_progress(0)
-      elif printer_status_model.state == MPSM2PrinterStatusModel.State.PRINTING:
-        # PRINTING includes paused print
-        if self._printer_output_model.get_printer_state() == 'idle':
-          self._printer_output_model.updateState('printing')
-        if self._print_job_model.get_state() == 'not_started':
-          self._print_job_model.updateState('active')
-        self._print_job_model.update_progress(
-            float(printer_status_model.progress))
-      else:
-        Logger.log('e', 'Unknown printer status')  # TODO: message
+      self._update_model_temperatures(printer_status_model)
+      self._update_model_state(printer_status_model)
+
+  def _update_model_temperatures(
+      self,
+      printer_status_model: MPSM2PrinterStatusModel) -> None:
+    """Updates temperatures in the printer's output model."""
+    self._printer_output_model.extruders[0].updateHotendTemperature(
+        float(printer_status_model.hotend_temperature))
+    self._printer_output_model.extruders[0].updateTargetHotendTemperature(
+        float(printer_status_model.target_hotend_temperature))
+    self._printer_output_model.updateBedTemperature(
+        float(printer_status_model.bed_temperature))
+    self._printer_output_model.updateTargetBedTemperature(
+        float(printer_status_model.target_bed_temperature))
+
+    if self._requested_hotend_temperature \
+        == printer_status_model.target_hotend_temperature:
+      self._requested_hotend_temperature = None
+      self.hasTargetHotendInProgressChanged.emit()
+
+  def _update_model_state(
+      self,
+      printer_status_model: MPSM2PrinterStatusModel) -> None:
+    """Updates printer and print job output models."""
+    if printer_status_model.state == MPSM2PrinterStatusModel.State.IDLE:
+      self._printer_output_model.updateState('idle')
+      self._print_job_model.updateState('not_started')
+      self._print_job_model.update_progress(0)
+    elif printer_status_model.state == MPSM2PrinterStatusModel.State.PRINTING:
+      # PRINTING includes paused print
+      if self._printer_output_model.get_printer_state() == 'idle':
+        self._printer_output_model.updateState('printing')
+      if self._print_job_model.get_state() == 'not_started':
+        self._print_job_model.updateState('active')
+      self._print_job_model.update_progress(
+          float(printer_status_model.progress))
+    else:
+      Logger.log('e', 'Unknown printer status')  # TODO: message
