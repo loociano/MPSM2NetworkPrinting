@@ -119,15 +119,12 @@ Item {
             enabled: true // TODO
             busy: OutputDevice.has_target_hotend_in_progress
             onClicked: {
-                const temperature = +targetHotendTemperatureField.text // parse int
-                if (!Number.isInteger(temperature)
-                    || isNaN(temperature)
-                    || temperature < 0 || temperature > max_hotend_temperature) {
-                    targetHotendTemperatureField.invalidInputDetected()
-                    return
+                if (!OutputDevice.isValidHotendTemperature(targetHotendTemperatureField.text)) {
+                    targetHotendTemperatureField.invalidInputDetected();
+                    return;
                 }
                 if (!OutputDevice.has_target_hotend_in_progress) {
-                    OutputDevice.setTargetHotendTemperature(temperature)
+                    OutputDevice.setTargetHotendTemperature(parseInt(targetHotendTemperatureField.text));
                 }
             }
         }

@@ -147,6 +147,15 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     """
     return self._requested_hotend_temperature is not None
 
+  @pyqtSlot(str, name='isValidHotendTemperature', result = bool)
+  def is_valid_hotend_temperature(self, input_temperature: str) -> bool:
+    if not input_temperature.isdigit():
+      return False
+    if int(input_temperature) < 0 \
+        or int(input_temperature) > self.MAX_TARGET_HOTEND_TEMPERATURE:
+      return False
+    return True
+
   @pyqtSlot(str, name='setTargetHotendTemperature')
   def set_target_hotend_temperature(self, celsius: str) -> None:
     """Called when the user requests a target hotend temperature.
