@@ -4,7 +4,7 @@ import QtQuick 2.3
 import QtQuick.Controls 2.0
 import QtQuick.Dialogs 1.1
 import UM 1.3 as UM
-import Cura 1.0 as Cura
+import Cura 1.5 as Cura
 
 Item {
     id: base
@@ -249,39 +249,18 @@ Item {
             enabled: true
         }
 
-        Button {
+        Cura.SecondaryButton {
             id: printCachedButton
             anchors {
                 verticalCenter: parent.verticalCenter
                 right: parent.right
                 rightMargin: 18 * screenScaleFactor
             }
-            background: Rectangle {
-                color: UM.Theme.getColor('monitor_secondary_button_shadow')
-                radius: 2 * screenScaleFactor
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.bottomMargin: 2 * screenScaleFactor
-                    color: printCachedButton.hovered ? UM.Theme.getColor('monitor_secondary_button_hover') : UM.Theme.getColor('monitor_secondary_button')
-                    radius: 2 * screenScaleFactor
-                }
-            }
-            contentItem: Label {
-                anchors.fill: parent
-                anchors.bottomMargin: 2 * screenScaleFactor
-                color: UM.Theme.getColor('monitor_secondary_button_text')
-                font: UM.Theme.getFont('medium')
-                text: catalog.i18nc('@action:button', 'Print Cached Model')
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-                height: 18 * screenScaleFactor
-                renderType: Text.NativeRendering
-            }
-            implicitHeight: 32 * screenScaleFactor
-            implicitWidth: 150 * screenScaleFactor
-            visible: printer && printer.activePrintJob && printer.activePrintJob.state === 'not_started'
-            onClicked: base.enabled ? OutputDevice.startPrint() : {}
+            text: catalog.i18nc('@button', 'Print Cached Model')
             enabled: !OutputDevice.isUploading
+            visible: printer && printer.activePrintJob && printer.activePrintJob.state === 'not_started'
+            busy: OutputDevice.has_start_print_request_in_progress
+            onClicked: base.enabled ? OutputDevice.startPrint() : {}
         }
     }
 }

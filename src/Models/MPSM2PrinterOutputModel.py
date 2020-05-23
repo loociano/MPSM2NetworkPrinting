@@ -7,7 +7,7 @@ from cura.PrinterOutput.PrinterOutputController import PrinterOutputController
 
 
 class MPSM2PrinterOutputModel(PrinterOutputModel):
-  """Printer's output model"""
+  """Printer's output model."""
 
   def __init__(self, output_controller: PrinterOutputController) -> None:
     """Constructor.
