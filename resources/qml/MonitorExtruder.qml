@@ -8,6 +8,7 @@ import Cura 1.5 as Cura
 Item {
     property var hotendTemperature : null // int
     property var targetHotendTemperature : null // int
+    property int max_hotend_temperature : OutputDevice.max_hotend_temperature
     height: 40 * screenScaleFactor
     width: childrenRect.width
 
@@ -100,7 +101,7 @@ Item {
                 left: parent.left
             }
             visible: false
-            text: catalog.i18nc('@text', 'Temperature must be between 0ºC and 260ºC.') // TODO: read from constants.
+            text: catalog.i18nc('@text', 'Temperature must be between 0ºC and ' + max_hotend_temperature + 'ºC.')
             font: UM.Theme.getFont('default')
             color: UM.Theme.getColor('error')
             renderType: Text.NativeRendering
@@ -119,10 +120,9 @@ Item {
             busy: OutputDevice.has_target_hotend_in_progress
             onClicked: {
                 const temperature = +targetHotendTemperatureField.text // parse int
-                // TODO: extract constants.
                 if (!Number.isInteger(temperature)
                     || isNaN(temperature)
-                    || temperature < 0 || temperature > 260) {
+                    || temperature < 0 || temperature > max_hotend_temperature) {
                     targetHotendTemperatureField.invalidInputDetected()
                     return
                 }

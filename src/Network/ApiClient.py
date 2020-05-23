@@ -125,7 +125,7 @@ class ApiClient:
       celsius: target hotend temperature
       on_finished: callback after request completes.
     """
-    # TODO: extract constant
+    # TODO: extract constants.
     if celsius < 0 or celsius > 260:
       Logger.log('e', 'Target hotend temperature out of range')
       return
@@ -173,6 +173,7 @@ class ApiClient:
       reply: HTTP response.
       on_finished: callback after request completes.
     """
+
     def parse() -> None:
       """Parses the HTTP response."""
       self._upload_reply = None

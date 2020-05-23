@@ -71,6 +71,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       b'printer_type': b'monoprice_select_mini_v2',
       b'firmware_version': b'Unknown',
   }
+  MAX_TARGET_HOTEND_TEMPERATURE = 260  # celsius
 
   printerStatusChanged = pyqtSignal()
   onPrinterUpload = pyqtSignal(bool)
@@ -124,6 +125,10 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     if self._printer_raw_response.upper() != 'OK':
       self._on_printer_status_changed(self._printer_raw_response)
     return self._printer_output_model
+
+  @pyqtProperty(int, constant=True)
+  def max_hotend_temperature(self) -> int:
+    return self.MAX_TARGET_HOTEND_TEMPERATURE
 
   # pylint:disable=invalid-name
   @pyqtProperty(bool, notify=onPrinterUpload)
