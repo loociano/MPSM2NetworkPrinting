@@ -90,21 +90,22 @@ Item {
                 }
             }
             MonitorPrinterConfiguration {
-                id: printerConfiguration
-                anchors.verticalCenter: parent.verticalCenter
-                buildplate: {
-                    if (printer) {
-                        return [printer.bedTemperature, printer.targetBedTemperature]
-                    }
-                    return null
+                anchors {
+                    top: parent.top
                 }
+                height: 72 * screenScaleFactor
                 extruder: {
                     if (printer) {
                         return printer.extruders[0]
                     }
                     return null
                 }
-                height: 72 * screenScaleFactor
+                buildplate: {
+                    if (printer) {
+                        return [printer.bedTemperature, printer.targetBedTemperature]
+                    }
+                    return null
+                }
             }
         }
     }

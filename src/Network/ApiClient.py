@@ -133,6 +133,23 @@ class ApiClient:
         self._create_empty_request('/set?cmd={{C:T{:04d}}}'.format(celsius)))
     self._add_callback(reply, on_finished)
 
+  def set_target_bed_temperature(self,
+                                 celsius: int,
+                                 on_finished: Callable = None) -> None:
+    """Requests the printer to set a target bed temperature.
+
+    Args:
+      celsius: target bed temperature
+      on_finished: callback after request completes.
+    """
+    # TODO: extract constants.
+    if celsius < 0 or celsius > 85:
+      Logger.log('e', 'Target bed temperature out of range')
+      return
+    reply = self._manager.get(
+        self._create_empty_request('/set?cmd={{C:P{:03d}}}'.format(celsius)))
+    self._add_callback(reply, on_finished)
+
   def _handle_on_finished(self, reply: QNetworkReply) -> None:
     """Called when any previously issued HTTP request finishes.
 

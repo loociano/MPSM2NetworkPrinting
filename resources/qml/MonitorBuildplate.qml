@@ -3,10 +3,13 @@
 import QtQuick 2.2
 import QtQuick.Controls 2.0
 import UM 1.3 as UM
+import Cura 1.5 as Cura
 
+// TODO: parameterize along with extruder counterpart.
 Item {
     property var bedTemperature: null
     property var targetBedTemperature: null
+    property int max_bed_temperature : OutputDevice.max_bed_temperature
     height: 40 * screenScaleFactor
     width: childrenRect.width
 
@@ -65,6 +68,68 @@ Item {
             height: 18 * screenScaleFactor
             verticalAlignment: Text.AlignVCenter
             renderType: Text.NativeRendering
+        }
+    }
+
+    Item {
+        id: targetBedTemperatureInputFields
+        height: childrenRect.height
+        anchors {
+            top: parent.top
+            left: targetBedTemperatureWrapper.right
+            leftMargin: 48 * screenScaleFactor
+        }
+
+        Cura.TextField {
+            id: targetBedTemperatureField
+            width: 48 * screenScaleFactor
+            height: setTargetBedTemperatureButton.height
+            anchors {
+                verticalCenter: setTargetBedTemperatureButton.verticalCenter
+                left: parent.left
+            }
+            signal invalidInputDetected()
+            onInvalidInputDetected: invalidTargetBedTemperatureLabel.visible = true
+            onTextEdited: invalidTargetBedTemperatureLabel.visible = false
+            maximumLength: 2 // max bed temperature is 85.
+            placeholderText: targetBedTemperature !== '' ? targetBedTemperature : 0
+            enabled: !OutputDevice.isUploading
+            onAccepted: setTargetBedTemperatureButton.clicked()
+        }
+
+        Label {
+            id: invalidTargetBedTemperatureLabel
+            anchors {
+                top: targetBedTemperatureField.bottom
+                topMargin: UM.Theme.getSize('narrow_margin').height
+                left: parent.left
+            }
+            visible: false
+            text: catalog.i18nc('@text', 'Temperature must be between 0ºC and ' + max_bed_temperature + 'ºC.')
+            font: UM.Theme.getFont('default')
+            color: UM.Theme.getColor('error')
+            renderType: Text.NativeRendering
+        }
+
+        Cura.SecondaryButton {
+            id: setTargetBedTemperatureButton
+            anchors {
+                top: parent.top
+                left: targetBedTemperatureField.right
+                leftMargin: UM.Theme.getSize('default_margin').width
+            }
+            text: catalog.i18nc('@button', 'Set Target')
+            enabled: !OutputDevice.isUploading
+            busy: OutputDevice.has_target_bed_in_progress
+            onClicked: {
+                if (!OutputDevice.isValidBedTemperature(targetBedTemperatureField.text)) {
+                    targetBedTemperatureField.invalidInputDetected();
+                    return;
+                }
+                if (!OutputDevice.has_target_bed_in_progress) {
+                    OutputDevice.setTargetBedTemperature(parseInt(targetBedTemperatureField.text));
+                }
+            }
         }
     }
 }

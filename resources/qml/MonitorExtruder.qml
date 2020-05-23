@@ -71,7 +71,6 @@ Item {
         height: childrenRect.height
         anchors {
             top: parent.top
-            //verticalCenter: parent.verticalCenter
             left: targetHotendTemperatureWrapper.right
             leftMargin: 48 * screenScaleFactor
         }
@@ -111,7 +110,6 @@ Item {
             id: setTargetHotendTemperatureButton
             anchors {
                 top: parent.top
-                //verticalCenter: parent.verticalCenter
                 left: targetHotendTemperatureField.right
                 leftMargin: UM.Theme.getSize('default_margin').width
             }

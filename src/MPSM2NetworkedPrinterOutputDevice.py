@@ -72,10 +72,12 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       b'firmware_version': b'Unknown',
   }
   MAX_TARGET_HOTEND_TEMPERATURE = 260  # celsius
+  MAX_TARGET_BED_TEMPERATURE = 85  # celsius
 
   printerStatusChanged = pyqtSignal()
   onPrinterUpload = pyqtSignal(bool)
   hasTargetHotendInProgressChanged = pyqtSignal()
+  hasTargetBedInProgressChanged = pyqtSignal()
 
   def __init__(self, device_id: str, address: str, parent=None) -> None:
     """Constructor
@@ -96,6 +98,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._printer_raw_response = ''  # HTTP string response body
     self._is_busy = False
     self._requested_hotend_temperature = None  # int
+    self._requested_bed_temperature = None  # int
 
     # Set the display name from the properties.
     self.setName(self.getProperty('name'))
@@ -130,6 +133,10 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   def max_hotend_temperature(self) -> int:
     return self.MAX_TARGET_HOTEND_TEMPERATURE
 
+  @pyqtProperty(int, constant=True)
+  def max_bed_temperature(self) -> int:
+    return self.MAX_TARGET_BED_TEMPERATURE
+
   # pylint:disable=invalid-name
   @pyqtProperty(bool, notify=onPrinterUpload)
   def isUploading(self) -> bool:
@@ -147,12 +154,29 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     """
     return self._requested_hotend_temperature is not None
 
-  @pyqtSlot(str, name='isValidHotendTemperature', result = bool)
+  @pyqtProperty(bool, notify=hasTargetBedInProgressChanged)
+  def has_target_bed_in_progress(self) -> bool:
+    """
+    Returns:
+       true if there is a request to update bed temperature in progress.
+    """
+    return self._requested_bed_temperature is not None
+
+  @pyqtSlot(str, name='isValidHotendTemperature', result=bool)
   def is_valid_hotend_temperature(self, input_temperature: str) -> bool:
     if not input_temperature.isdigit():
       return False
     if int(input_temperature) < 0 \
         or int(input_temperature) > self.MAX_TARGET_HOTEND_TEMPERATURE:
+      return False
+    return True
+
+  @pyqtSlot(str, name='isValidBedTemperature', result=bool)
+  def is_valid_bed_temperature(self, input_temperature: str) -> bool:
+    if not input_temperature.isdigit():
+      return False
+    if int(input_temperature) < 0 \
+        or int(input_temperature) > self.MAX_TARGET_BED_TEMPERATURE:
       return False
     return True
 
@@ -167,11 +191,28 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     try:
       self._api_client.set_target_hotend_temperature(
           int(celsius),
-          self._on_target_hotend_temperature_finished)
+          self._on_target_temperature_finished)
       self._requested_hotend_temperature = int(celsius)
       self.hasTargetHotendInProgressChanged.emit()
     except ValueError:
       Logger.log('e', 'Invalid target hotend temperature %s.', celsius)
+
+  @pyqtSlot(str, name='setTargetBedTemperature')
+  def set_target_bed_temperature(self, celsius: str) -> None:
+    """Called when the user requests a target bed temperature.
+
+    Args:
+      celsius: requested target bed temperature. Can be invalid.
+    """
+    Logger.log('d', 'Setting target bed temperature to %sºC.', celsius)
+    try:
+      self._api_client.set_target_bed_temperature(
+          int(celsius),
+          self._on_target_temperature_finished)
+      self._requested_bed_temperature = int(celsius)
+      self.hasTargetBedInProgressChanged.emit()
+    except ValueError:
+      Logger.log('e', 'Invalid target bed temperature %s.', celsius)
 
   @pyqtSlot(name='startPrint')
   def start_print(self) -> None:
@@ -365,16 +406,16 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     else:
       Logger.log('e', 'Could not cancel print')  # TODO: message
 
-  def _on_target_hotend_temperature_finished(self, raw_response: str) -> None:
-    """Called when a request to set target hotend temperature completed.
+  def _on_target_temperature_finished(self, raw_response: str) -> None:
+    """Called when a request to set target temperature completed.
 
     Args:
-      raw_response: HTTP response to the target hotend temperature request.
+      raw_response: HTTP response to the target temperature request.
     """
     self._printer_raw_response = raw_response
     if raw_response.upper() != 'OK':
       # TODO: UI message
-      Logger.log('e', 'Could not set target hotend temperature.')
+      Logger.log('e', 'Could not set target temperature.')
 
   def _set_ui_elements(self) -> None:
     """Sets Cura UI elements corresponding to this device."""
@@ -445,6 +486,11 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
         == printer_status_model.target_hotend_temperature:
       self._requested_hotend_temperature = None
       self.hasTargetHotendInProgressChanged.emit()
+
+    if self._requested_bed_temperature \
+        == printer_status_model.target_bed_temperature:
+      self._requested_bed_temperature = None
+      self.hasTargetBedInProgressChanged.emit()
 
   def _update_model_state(
       self,
