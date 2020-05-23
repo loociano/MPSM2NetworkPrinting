@@ -89,7 +89,7 @@ Item {
             onTextEdited: invalidTargetHotendTemperatureLabel.visible = false
             maximumLength: 3
             placeholderText: targetHotendTemperature !== '' ? targetHotendTemperature : 0
-            enabled: true // TODO
+            enabled: !OutputDevice.isUploading
             onAccepted: setTargetHotendTemperatureButton.clicked()
         }
 
@@ -116,7 +116,7 @@ Item {
                 leftMargin: UM.Theme.getSize('default_margin').width
             }
             text: catalog.i18nc('@button', 'Set Target')
-            enabled: true // TODO
+            enabled: !OutputDevice.isUploading
             busy: OutputDevice.has_target_hotend_in_progress
             onClicked: {
                 if (!OutputDevice.isValidHotendTemperature(targetHotendTemperatureField.text)) {
