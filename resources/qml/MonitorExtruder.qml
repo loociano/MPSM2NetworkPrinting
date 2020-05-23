@@ -3,6 +3,7 @@
 import QtQuick 2.2
 import QtQuick.Controls 2.0
 import UM 1.3 as UM
+import Cura 1.5 as Cura
 
 Item {
     property var hotendTemperature : null // int
@@ -61,6 +62,41 @@ Item {
             height: parent.height
             verticalAlignment: Text.AlignVCenter
             renderType: Text.NativeRendering
+        }
+    }
+
+    Cura.TextField {
+        id: targetHotendTemperatureField
+        width: 48 * screenScaleFactor
+        height: setTargetHotendTemperatureButton.height
+        anchors {
+            verticalCenter: parent.verticalCenter
+            left: targetHotendTemperatureWrapper.right
+            leftMargin: 48 * screenScaleFactor
+        }
+        // TODO: validation
+        maximumLength: 3
+        placeholderText: catalog.i18nc('@text', '210') // TODO
+        enabled: true // TODO
+        onAccepted: setTargetHotendTemperatureButton.clicked()
+    }
+
+    Cura.SecondaryButton {
+        id: setTargetHotendTemperatureButton
+        anchors {
+            verticalCenter: parent.verticalCenter
+            left: targetHotendTemperatureField.right
+            leftMargin: 8 * screenScaleFactor
+        }
+        text: catalog.i18nc('@button', 'Set Target')
+        enabled: true // TODO
+        busy: OutputDevice.has_target_hotend_in_progress
+        onClicked: {
+            const temperature = targetHotendTemperatureField.text
+            // TODO: validate
+            if (!OutputDevice.has_target_hotend_in_progress) {
+                OutputDevice.setTargetHotendTemperature(temperature)
+            }
         }
     }
 }

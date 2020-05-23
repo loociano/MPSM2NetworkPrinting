@@ -74,6 +74,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
 
   printerStatusChanged = pyqtSignal()
   onPrinterUpload = pyqtSignal(bool)
+  hasTargetHotendInProgressChanged = pyqtSignal()
 
   def __init__(self, device_id: str, address: str, parent=None) -> None:
     """Constructor
@@ -93,6 +94,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._printer_output_controller = MPSM2OutputController(self)
     self._printer_raw_response = ''  # HTTP string response body
     self._is_busy = False
+    self._has_target_hotend_in_progress = False
 
     # Set the display name from the properties.
     self.setName(self.getProperty('name'))
@@ -131,6 +133,30 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
        true if user is uploading a model to the printer.
     """
     return self._is_busy
+
+  @pyqtProperty(bool, notify=hasTargetHotendInProgressChanged)
+  def has_target_hotend_in_progress(self) -> bool:
+    """
+    Returns:
+       true if there is a request to update hot-end temperature in progress.
+    """
+    return self._has_target_hotend_in_progress
+
+  @pyqtSlot(str, name='setTargetHotendTemperature')
+  def set_target_hotend_temperature(
+      self,
+      target_hotend_temperature_celsius: str) -> None:
+    Logger.log('d', 'Setting target hotend temperature to %sºC',
+               target_hotend_temperature_celsius)
+    try:
+      self._has_target_hotend_in_progress = True
+      self.hasTargetHotendInProgressChanged.emit()
+      self._api_client.set_target_hotend_temperature(
+          int(target_hotend_temperature_celsius),
+          self._on_target_hotend_temperature_finished)
+    except ValueError:
+      Logger.log('e', 'Invalid target hotend temperature %s',
+                 target_hotend_temperature_celsius)
 
   @pyqtSlot(name='startPrint')
   def start_print(self) -> None:
@@ -323,6 +349,20 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       self.printerStatusChanged.emit()
     else:
       Logger.log('e', 'Could not cancel print')  # TODO: message
+
+  def _on_target_hotend_temperature_finished(self, raw_response: str) -> None:
+    """Called when a request to set target hotend temperature completed.
+
+    Args:
+      raw_response: HTTP response to the target hotend temperature request.
+    """
+    self._printer_raw_response = raw_response
+    if raw_response.upper() == 'OK':
+      self._has_target_hotend_in_progress = False
+      self.hasTargetHotendInProgressChanged.emit()
+    else:
+      # TODO: UI message
+      Logger.log('e', 'Could not set target hotend temperature.')
 
   def _set_ui_elements(self) -> None:
     """Sets Cura UI elements corresponding to this device."""

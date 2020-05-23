@@ -116,6 +116,23 @@ class ApiClient:
     if self._upload_reply:
       self._upload_reply.abort()
 
+  def set_target_hotend_temperature(self,
+                                    celsius: int,
+                                    on_finished: Callable = None) -> None:
+    """Tells the printer the target hotend temperature.
+
+    Args:
+      celsius: target hotend temperature
+      on_finished: callback after request completes.
+    """
+    # TODO: extract constant
+    if celsius < 0 or celsius > 260:
+      Logger.log('e', 'Target hotend temperature out of range')
+      return
+    reply = self._manager.get(
+        self._create_empty_request('/set?cmd={{C:T{:04d}}}'.format(celsius)))
+    self._add_callback(reply, on_finished)
+
   def _handle_on_finished(self, reply: QNetworkReply) -> None:
     """Called when any previously issued HTTP request finishes.
 
@@ -163,6 +180,7 @@ class ApiClient:
       if reply.attribute(
           QNetworkRequest.HttpStatusCodeAttribute) is None or reply.error() > 0:
         Logger.log('e', 'No response received from printer.')
+        # TODO: call on_error
         return
 
       on_finished(self._parse_reply(reply))
