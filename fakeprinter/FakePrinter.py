@@ -18,6 +18,7 @@ class FakePrinter:
 
   class Handler(BaseHTTPRequestHandler):
     """Handles HTTP requests."""
+    printer = None
 
     def __init__(self, request: bytes, client_address: Tuple[str, int],
                  server: socketserver.BaseServer) -> None:
@@ -32,7 +33,13 @@ class FakePrinter:
       self.send_header('Content-type', 'text/html')
       self.end_headers()
       if self.path == '/inquiry':
-        response = 'T0/0P0/0/0I'
+        response = 'T{}/{}P{}/{}/{}{}'.format(
+            self.printer.hotend,
+            self.printer.target_hotend,
+            self.printer.bed,
+            self.printer.target_bed,
+            self.printer.progress,
+            'I' if self.printer.state == 'idle' else 'P')
       else:
         response = 'OK'
       self._logger.info('Response: %s', response)
@@ -42,8 +49,18 @@ class FakePrinter:
     """Runs the fake printer."""
     server_address = ('', 80)
     self._logger.info('Starting fake printer on http://localhost:80')
+    handler_class.printer = self.Printer()
     httpd = server_class(server_address, handler_class)
     httpd.serve_forever()
+
+  class Printer:
+    def __init__(self):
+      self.state = 'idle'
+      self.hotend = 25
+      self.target_hotend = 0
+      self.bed = 20
+      self.target_bed = 0
+      self.progress = 0
 
 
 if __name__ == '__main__':
