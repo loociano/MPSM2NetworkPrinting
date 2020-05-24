@@ -4,6 +4,7 @@ Plugin is licensed under the GNU Lesser General Public License v3.0.
 """
 import logging
 import socketserver
+import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 from typing import Tuple
@@ -32,6 +33,7 @@ class FakePrinter:
       self.send_response(200)
       self.send_header('Content-type', 'text/html')
       self.end_headers()
+      response = 'OK'
       if self.path == '/inquiry':
         response = 'T{}/{}P{}/{}/{}{}'.format(
             self.printer.hotend,
@@ -40,8 +42,13 @@ class FakePrinter:
             self.printer.target_bed,
             self.printer.progress,
             'I' if self.printer.state == 'idle' else 'P')
-      else:
-        response = 'OK'
+      elif self.path == '/set?cmd=%7BP:M%7D':  # print cached model
+        time.sleep(2)
+        self.printer.state = 'printing'
+      elif self.path == '/set?cmd=%7BP:X%7D':  # cancel print
+        time.sleep(2)
+        self.printer.state = 'idle'
+
       self._logger.info('Response: %s', response)
       self.wfile.write(response.encode('utf-8'))
 
