@@ -10,12 +10,10 @@ from UM import i18nCatalog
 from UM.Logger import Logger
 from UM.Settings.ContainerRegistry import ContainerRegistry
 from UM.Signal import Signal
-
 # pylint:disable=import-error
 from cura.CuraApplication import CuraApplication
 from cura.Settings.CuraStackBuilder import CuraStackBuilder
 from cura.Settings.GlobalStack import GlobalStack
-
 # pylint:disable=relative-beyond-top-level
 from .ApiClient import ApiClient
 from .PrinterHeartbeat import PrinterHeartbeat
@@ -49,6 +47,8 @@ class DeviceManager(QObject):
     ContainerRegistry.getInstance().containerRemoved.connect(
         self._on_printer_container_removed)
 
+    self._add_manual_device_in_progress = False
+
   def start(self) -> None:
     Logger.log('d', 'Starting Device Manager.')
     for address in self._get_stored_manual_addresses():
@@ -61,17 +61,20 @@ class DeviceManager(QObject):
       self._on_discovered_device_removed(instance_name)
 
   def start_discovery(self) -> None:
+    Logger.log('d', 'Start discovery.')
     self.stop()
     self.start()
 
   def add_manual_device(
       self, address: str,
       callback: Optional[Callable[[bool, str], None]] = None) -> None:
-    Logger.log('d', 'Adding manual device with address: %s', address)
+    Logger.log('d', 'Requesting to add manual device with address: %s', address)
+    self._add_manual_device_in_progress = True
     api_client = ApiClient(address, lambda error: Logger.log('e', str(error)))
     api_client.get_printer_status(
-        lambda response: self._on_printer_status_response(response, address,
-                                                          callback))
+        lambda response: self._on_printer_status_response(
+            response, address, callback),
+        self._on_printer_status_error)
 
   def remove_manual_device(self, device_id: str,
                            address: Optional[str] = None) -> None:
@@ -120,9 +123,13 @@ class DeviceManager(QObject):
       elif device.key in output_device_manager.getOutputDeviceIds():
         output_device_manager.removeOutputDevice(device.key)
 
+  def _on_printer_status_error(self):
+    self._add_manual_device_in_progress = False
+
   def _on_printer_status_response(
       self, response, address: str,
       callback: Optional[Callable[[bool, str], None]] = None) -> None:
+    self._add_manual_device_in_progress = False
     if response is None and callback is not None:
       CuraApplication.getInstance().callLater(callback, False, address)
       return
@@ -240,7 +247,9 @@ class DeviceManager(QObject):
         MPSM2NetworkedPrinterOutputDevice,
         self._discovered_devices.get(DeviceManager._get_device_id(address)))
     if device and raw_response == 'timeout':
-      if not device.is_busy():  # Request timeout is expected during job upload.
+      if not device.is_busy() and not self._add_manual_device_in_progress:
+        # Request timeout is expected during job upload.
+        Logger.log('d', 'Discovered device timed out. Stopping device.')
         self.stop()
         return
     if not device:

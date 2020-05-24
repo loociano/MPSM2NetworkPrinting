@@ -26,65 +26,74 @@ class ApiClient:
     # QHttpMultiPart objects here.
     self._cached_multiparts = {}
 
-  def get_printer_status(self, on_finished: Callable) -> None:
+  def get_printer_status(self, on_finished: Callable,
+                         on_error: Callable) -> None:
     """Gets printer status. Status contains temperatures, printer state and
     progress if printing.
 
     Args:
       on_finished: callback after request completes.
+      on_error: callback if the request fails.
     """
     reply = self._manager.get(self._create_empty_request('/inquiry'))
-    self._add_callback(reply, on_finished)
+    self._add_callback(reply, on_finished, on_error)
 
-  def start_print(self, on_finished: Optional[Callable] = None) -> None:
+  def start_print(self, on_finished: Optional[Callable] = None,
+                  on_error=None) -> None:
     """Tells the printer to start printing.
 
     Args:
       on_finished: callback after request completes.
+      on_error: callback if the request fails.
     """
     reply = self._manager.get(self._create_empty_request('/set?cmd={P:M}'))
     if on_finished:
-      self._add_callback(reply, on_finished)
+      self._add_callback(reply, on_finished, on_error)
 
-  def resume_print(self, on_finished: Callable = None) -> None:
+  def resume_print(self, on_finished: Callable = None, on_error=None) -> None:
     """Tells the printer to resume a paused print.
     If called when not paused, starts the print but the printer UI breaks.
 
     Args:
       on_finished: callback after request completes.
+      on_error: callback if the request fails.
     """
     reply = self._manager.get(self._create_empty_request('/set?cmd={P:R}'))
-    self._add_callback(reply, on_finished)
+    self._add_callback(reply, on_finished, on_error)
 
-  def pause_print(self, on_finished: Callable = None) -> None:
+  def pause_print(self, on_finished: Callable = None, on_error=None) -> None:
     """Tells the printer to pause the print.
     If called when not printing, starts the print, pauses but the UI breaks.
 
     Args:
       on_finished: callback after request completes.
+      on_error: callback if the request fails.
     """
     reply = self._manager.get(self._create_empty_request('/set?cmd={P:P}'))
-    self._add_callback(reply, on_finished)
+    self._add_callback(reply, on_finished, on_error)
 
-  def cancel_print(self, on_finished: Optional[Callable] = None) -> None:
+  def cancel_print(self, on_finished: Optional[Callable] = None,
+                   on_error=None) -> None:
     """# Tells the printer to cancel the print.
     If called when not printing, it is a no-op.
 
     Args:
       on_finished: callback after request completes.
+      on_error: callback if the request fails.
     """
     reply = self._manager.get(self._create_empty_request('/set?cmd={P:X}'))
     if on_finished:
-      self._add_callback(reply, on_finished)
+      self._add_callback(reply, on_finished, on_error)
 
   def upload_print(self, filename: str, payload: bytes, on_finished: Callable,
-                   on_progress: Callable) -> None:
+                   on_progress: Callable, on_error=None) -> None:
     """Uploads a file to the printer with a POST multipart/form-data request.
     Args:
       filename: name of the file to upload
       payload: content in bytes
       on_finished: callback after request completes.
       on_progress: callback while file uploads.
+      on_error: callback if the request fails.
     """
     http_part = QHttpPart()
     http_part.setHeader(QNetworkRequest.ContentDispositionHeader,
@@ -104,7 +113,7 @@ class ApiClient:
                           http_multi_part.boundary(), 'utf-8'))
 
     reply = self._manager.post(request, http_multi_part)
-    self._add_callback(reply, on_finished)
+    self._add_callback(reply, on_finished, on_error)
     reply.uploadProgress.connect(on_progress)
     # Prevent HTTP multi-part to be garbage-collected.
     self._cached_multiparts[reply] = http_multi_part
@@ -118,12 +127,14 @@ class ApiClient:
 
   def set_target_hotend_temperature(self,
                                     celsius: int,
-                                    on_finished: Callable = None) -> None:
+                                    on_finished: Callable = None,
+                                    on_error=None) -> None:
     """Tells the printer the target hotend temperature.
 
     Args:
       celsius: target hotend temperature
       on_finished: callback after request completes.
+      on_error: callback if the request fails.
     """
     # TODO: extract constants.
     if celsius < 0 or celsius > 260:
@@ -131,16 +142,18 @@ class ApiClient:
       return
     reply = self._manager.get(
         self._create_empty_request('/set?cmd={{C:T{:04d}}}'.format(celsius)))
-    self._add_callback(reply, on_finished)
+    self._add_callback(reply, on_finished, on_error)
 
   def set_target_bed_temperature(self,
                                  celsius: int,
-                                 on_finished: Callable = None) -> None:
+                                 on_finished: Callable = None,
+                                 on_error=None) -> None:
     """Requests the printer to set a target bed temperature.
 
     Args:
       celsius: target bed temperature
       on_finished: callback after request completes.
+      on_error: callback if the request fails.
     """
     # TODO: extract constants.
     if celsius < 0 or celsius > 85:
@@ -148,7 +161,7 @@ class ApiClient:
       return
     reply = self._manager.get(
         self._create_empty_request('/set?cmd={{C:P{:03d}}}'.format(celsius)))
-    self._add_callback(reply, on_finished)
+    self._add_callback(reply, on_finished, on_error)
 
   def _handle_on_finished(self, reply: QNetworkReply) -> None:
     """Called when any previously issued HTTP request finishes.
@@ -183,7 +196,8 @@ class ApiClient:
     request.setAttribute(QNetworkRequest.FollowRedirectsAttribute, True)
     return request
 
-  def _add_callback(self, reply: QNetworkReply, on_finished: Callable) -> None:
+  def _add_callback(self, reply: QNetworkReply, on_finished: Callable,
+                    on_error: Optional[Callable]) -> None:
     """Adds a callback to an HTTP request.
 
     Args:
@@ -198,7 +212,8 @@ class ApiClient:
       if reply.attribute(
           QNetworkRequest.HttpStatusCodeAttribute) is None or reply.error() > 0:
         Logger.log('e', 'No response received from printer.')
-        # TODO: call on_error
+        if on_error:
+          on_error()
         return
 
       on_finished(self._parse_reply(reply))
