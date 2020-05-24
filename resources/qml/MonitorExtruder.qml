@@ -34,8 +34,8 @@ Item {
             color: UM.Theme.getColor('monitor_text_primary')
             elide: Text.ElideRight
             font: UM.Theme.getFont('large_bold')
-            text: hotendTemperature + 'ºC'
-            visible: hotendTemperature !== 0
+            text: hotendTemperature !== '' ? hotendTemperature + 'ºC' : ''
+            visible: text
             height: parent.height
             verticalAlignment: Text.AlignVCenter
             renderType: Text.NativeRendering
@@ -59,7 +59,7 @@ Item {
             elide: Text.ElideRight
             font: UM.Theme.getFont('default')
             text: targetHotendTemperature !== '' ? 'Target: ' + targetHotendTemperature + 'ºC' : ''
-            visible: text !== ''
+            visible: text
             height: parent.height
             verticalAlignment: Text.AlignVCenter
             renderType: Text.NativeRendering
