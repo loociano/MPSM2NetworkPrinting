@@ -46,7 +46,7 @@ class PrinterHeartbeat(QThread):
         response = connection.getresponse()
         self.heartbeatSignal.emit(self._printer_ip_address,
                                   response.read().decode('utf-8'))
-      except socket.timeout:
+      except (ConnectionRefusedError, socket.timeout):
         self.heartbeatSignal.emit(self._printer_ip_address, 'timeout')
       finally:
         connection.close()
