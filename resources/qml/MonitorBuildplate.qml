@@ -119,7 +119,7 @@ Item {
                 leftMargin: UM.Theme.getSize('default_margin').width
             }
             text: catalog.i18nc('@button', 'Set Target')
-            enabled: !OutputDevice.isUploading
+            enabled: !OutputDevice.isUploading && !OutputDevice.has_target_bed_in_progress
             busy: OutputDevice.has_target_bed_in_progress
             onClicked: {
                 if (!OutputDevice.isValidBedTemperature(targetBedTemperatureField.text)) {

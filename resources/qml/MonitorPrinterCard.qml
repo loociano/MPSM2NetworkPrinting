@@ -185,7 +185,7 @@ Item {
                 rightMargin: 18 * screenScaleFactor
             }
             text: catalog.i18nc('@action:button', 'Resume Print')
-            enabled: true
+            enabled: !OutputDevice.has_start_print_request_in_progress
             visible: printer && printer.activePrintJob && printer.activePrintJob.state === 'active'
             busy: OutputDevice.has_start_print_request_in_progress
             onClicked: base.enabled ? OutputDevice.resumePrint() : {}
@@ -199,7 +199,7 @@ Item {
                 rightMargin: 18 * screenScaleFactor
             }
             text: catalog.i18nc('@action:button', 'Pause Print')
-            enabled: true
+            enabled: !OutputDevice.has_pause_print_request_in_progress
             visible: printer && printer.activePrintJob && printer.activePrintJob.state === 'active'
             busy: OutputDevice.has_pause_print_request_in_progress
             onClicked: base.enabled ? OutputDevice.pausePrint() : {}
@@ -213,7 +213,7 @@ Item {
                 rightMargin: 18 * screenScaleFactor
             }
             text: catalog.i18nc('@action:button', 'Cancel Print')
-            enabled: true
+            enabled: !OutputDevice.has_cancel_print_request_in_progress
             visible: printer && printer.activePrintJob && printer.activePrintJob.state === 'active'
             busy: OutputDevice.has_cancel_print_request_in_progress
             onClicked: base.enabled ? OutputDevice.cancelPrint() : {}
@@ -227,7 +227,7 @@ Item {
                 rightMargin: 18 * screenScaleFactor
             }
             text: catalog.i18nc('@button', 'Print Cached Model')
-            enabled: !OutputDevice.isUploading
+            enabled: !OutputDevice.isUploading && !OutputDevice.has_start_print_request_in_progress
             visible: printer && printer.activePrintJob && printer.activePrintJob.state === 'not_started'
             busy: OutputDevice.has_start_print_request_in_progress
             onClicked: base.enabled ? OutputDevice.startPrint() : {}
