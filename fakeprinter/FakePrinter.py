@@ -30,9 +30,6 @@ class FakePrinter:
     # pylint:disable=invalid-name
     def do_GET(self) -> None:
       """Handles HTTP GET requests."""
-      self.send_response(200)
-      self.send_header('Content-type', 'text/html')
-      self.end_headers()
       response = 'OK'
       if self.path == '/inquiry':
         response = 'T{}/{}P{}/{}/{}{}'.format(
@@ -48,9 +45,34 @@ class FakePrinter:
       elif self.path == '/set?cmd=%7BP:X%7D':  # cancel print
         time.sleep(2)
         self.printer.state = 'idle'
-
+      else:
+        self._send_not_found_headers()
+        self.wfile.write('Not Found'.encode('utf-8'))
+        return
       self._logger.info('Response: %s', response)
+      self._send_success_headers()
       self.wfile.write(response.encode('utf-8'))
+
+    def do_POST(self) -> None:
+      """Handles HTTP POST requests."""
+      if self.path == '/upload':
+        self._send_success_headers()
+        content_length = int(self.headers['Content-Length'])
+        self.rfile.read(content_length)
+        self.wfile.write('OK'.encode('utf-8'))
+      else:
+        self._send_not_found_headers()
+        self.wfile.write('Not Found'.encode('utf-8'))
+
+    def _send_success_headers(self):
+      self.send_response(200)
+      self.send_header('Content-type', 'text/html')
+      self.end_headers()
+
+    def _send_not_found_headers(self):
+      self.send_response(404)
+      self.send_header('Content-type', 'text/html')
+      self.end_headers()
 
   def run(self, server_class=HTTPServer, handler_class=Handler) -> None:
     """Runs the fake printer."""
