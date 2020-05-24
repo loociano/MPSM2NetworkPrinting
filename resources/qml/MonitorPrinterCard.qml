@@ -156,11 +156,9 @@ Item {
                     if (printer) {
                         switch(printer.state) {
                             case 'idle':
-                                return catalog.i18nc('@label:status', 'Ready')
+                                return catalog.i18nc('@label:status', 'Ready to print')
                             case 'printing':
                                 return catalog.i18nc('@label:status', 'Printing')
-                            case 'paused':
-                                return catalog.i18nc('@label:status', 'Paused')
                         }
                     }
                     return ''
@@ -175,78 +173,50 @@ Item {
                     verticalCenter: parent.verticalCenter
                 }
                 printJob: printer && printer.activePrintJob
-                visible: printer && printer.activePrintJob && (printer.activePrintJob.state === 'active' || printer.activePrintJob.state === 'paused')
+                visible: printer && printer.activePrintJob && printer.activePrintJob.state === 'active'
             }
         }
 
-        Button {
-            id: pauseOrResumePrintButton
+        Cura.SecondaryButton {
+            id: resumeButton
+            anchors {
+                verticalCenter: parent.verticalCenter
+                right: pauseButton.left
+                rightMargin: 18 * screenScaleFactor
+            }
+            text: catalog.i18nc('@action:button', 'Resume Print')
+            enabled: true
+            visible: printer && printer.activePrintJob && printer.activePrintJob.state === 'active'
+            busy: OutputDevice.has_start_print_request_in_progress
+            onClicked: base.enabled ? OutputDevice.resumePrint() : {}
+        }
+
+        Cura.SecondaryButton {
+            id: pauseButton
             anchors {
                 verticalCenter: parent.verticalCenter
                 right: cancelPrintButton.left
                 rightMargin: 18 * screenScaleFactor
             }
-            background: Rectangle {
-                color: UM.Theme.getColor('monitor_secondary_button_shadow')
-                radius: 2 * screenScaleFactor
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.bottomMargin: 2 * screenScaleFactor
-                    color: pauseOrResumePrintButton.hovered ? UM.Theme.getColor('monitor_secondary_button_hover') : UM.Theme.getColor('monitor_secondary_button')
-                    radius: 2 * screenScaleFactor
-                }
-            }
-            contentItem: Label {
-                anchors.fill: parent
-                anchors.bottomMargin: 2 * screenScaleFactor
-                color: UM.Theme.getColor('monitor_secondary_button_text')
-                font: UM.Theme.getFont('medium')
-                text: printer.activePrintJob.state === 'paused' ? catalog.i18nc('@action:button', 'Resume Print') : catalog.i18nc('@action:button', 'Pause Print')
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-                height: 18 * screenScaleFactor
-                renderType: Text.NativeRendering
-            }
-            implicitHeight: 32 * screenScaleFactor
-            implicitWidth: 96 * screenScaleFactor
-            visible: printer && printer.activePrintJob && (printer.activePrintJob.state === 'active' || printer.activePrintJob.state === 'paused')
-            onClicked: base.enabled ? OutputDevice.pauseOrResumePrint() : {}
+            text: catalog.i18nc('@action:button', 'Pause Print')
             enabled: true
+            visible: printer && printer.activePrintJob && printer.activePrintJob.state === 'active'
+            busy: OutputDevice.has_pause_print_request_in_progress
+            onClicked: base.enabled ? OutputDevice.pausePrint() : {}
         }
 
-        Button {
+        Cura.SecondaryButton {
             id: cancelPrintButton
             anchors {
                 verticalCenter: parent.verticalCenter
                 right: parent.right
                 rightMargin: 18 * screenScaleFactor
             }
-            background: Rectangle {
-                color: UM.Theme.getColor('monitor_secondary_button_shadow')
-                radius: 2 * screenScaleFactor
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.bottomMargin: 2 * screenScaleFactor
-                    color: cancelPrintButton.hovered ? UM.Theme.getColor('monitor_secondary_button_hover') : UM.Theme.getColor('monitor_secondary_button')
-                    radius: 2 * screenScaleFactor
-                }
-            }
-            contentItem: Label {
-                anchors.fill: parent
-                anchors.bottomMargin: 2 * screenScaleFactor
-                color: UM.Theme.getColor('monitor_secondary_button_text')
-                font: UM.Theme.getFont('medium')
-                text: catalog.i18nc('@action:button', 'Cancel Print')
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-                height: 18 * screenScaleFactor
-                renderType: Text.NativeRendering
-            }
-            implicitHeight: 32 * screenScaleFactor
-            implicitWidth: 96 * screenScaleFactor
-            visible: printer && printer.activePrintJob && (printer.activePrintJob.state === 'active' || printer.activePrintJob.state === 'paused')
-            onClicked: base.enabled ? OutputDevice.cancelPrint() : {}
+            text: catalog.i18nc('@action:button', 'Cancel Print')
             enabled: true
+            visible: printer && printer.activePrintJob && printer.activePrintJob.state === 'active'
+            busy: OutputDevice.has_cancel_print_request_in_progress
+            onClicked: base.enabled ? OutputDevice.cancelPrint() : {}
         }
 
         Cura.SecondaryButton {

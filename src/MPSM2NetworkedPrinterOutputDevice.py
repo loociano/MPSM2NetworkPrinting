@@ -77,6 +77,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   printerStatusChanged = pyqtSignal()
   onPrinterUpload = pyqtSignal(bool)
   startPrintRequestChanged = pyqtSignal()
+  pausePrintRequestChanged = pyqtSignal()
+  cancelPrintRequestChanged = pyqtSignal()
   hasTargetHotendInProgressChanged = pyqtSignal()
   hasTargetBedInProgressChanged = pyqtSignal()
 
@@ -99,6 +101,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._printer_raw_response = ''  # HTTP string response body
     self._is_busy = False
     self._requested_start_print = False
+    self._requested_pause_print = False
+    self._requested_cancel_print = False
     self._requested_hotend_temperature = None  # int
     self._requested_bed_temperature = None  # int
 
@@ -155,6 +159,22 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
        true while printer is not printing.
     """
     return self._requested_start_print
+
+  @pyqtProperty(bool, notify=pausePrintRequestChanged)
+  def has_pause_print_request_in_progress(self) -> bool:
+    """
+    Returns:
+       true while the printer continues printing.
+    """
+    return self._requested_pause_print
+
+  @pyqtProperty(bool, notify=cancelPrintRequestChanged)
+  def has_cancel_print_request_in_progress(self) -> bool:
+    """
+    Returns:
+       true while the printer continues printing.
+    """
+    return self._requested_cancel_print
 
   @pyqtProperty(bool, notify=hasTargetHotendInProgressChanged)
   def has_target_hotend_in_progress(self) -> bool:
@@ -232,21 +252,29 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._requested_start_print = True
     self.startPrintRequestChanged.emit()
 
-  @pyqtSlot(name='pauseOrResumePrint')
-  def pause_or_resume_print(self) -> None:
-    """Pauses or resumes the print job."""
-    if self._print_job_model.get_state() == 'paused':
-      Logger.log('d', 'Resuming print.')
-      self._api_client.resume_print(self._on_print_resumed)
-    else:
-      Logger.log('d', 'Pausing print.')
-      self._api_client.pause_print(self._on_print_paused)
+  @pyqtSlot(name='resumePrint')
+  def resume_print(self) -> None:
+    """Resumes the print job."""
+    Logger.log('d', 'Resuming print.')
+    self._api_client.resume_print(self._on_print_resumed)
+    self._requested_start_print = True
+    self.startPrintRequestChanged.emit()
+
+  @pyqtSlot(name='pausePrint')
+  def pause_print(self) -> None:
+    """Pauses the print job."""
+    Logger.log('d', 'Pausing print.')
+    self._api_client.pause_print(self._on_print_paused)
+    self._requested_pause_print = True
+    self.pausePrintRequestChanged.emit()
 
   @pyqtSlot(name='cancelPrint')
   def cancel_print(self) -> None:
     """Cancels the print job."""
     Logger.log('d', 'Cancelling print.')
     self._api_client.cancel_print(self._on_print_cancelled)
+    self._requested_cancel_print = True
+    self.cancelPrintRequestChanged.emit()
 
   # Override
   def connect(self) -> None:
@@ -392,12 +420,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       raw_response: HTTP response to the pause request.
     """
     self._printer_raw_response = raw_response
-    if raw_response.upper() == 'OK':
-      self._printer_output_model.updateState('paused')
-      self._print_job_model.updateState('paused')
-      self.printerStatusChanged.emit()
-    else:
-      Logger.log('e', 'Could not pause print')  # TODO: message
+    if raw_response.upper() != 'OK':
+      Logger.log('e', 'Could not pause print.')  # TODO: message
 
   def _on_print_cancelled(self, raw_response: str) -> None:
     """Called when the user cancels the print job.
@@ -406,12 +430,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       raw_response: HTTP response to the cancel request.
     """
     self._printer_raw_response = raw_response
-    if raw_response.upper() == 'OK':
-      self._printer_output_model.updateState('idle')
-      self._print_job_model.updateState('not_started')
-      self._print_job_model.update_progress(0)
-      self.printerStatusChanged.emit()
-    else:
+    if raw_response.upper() != 'OK':
       Logger.log('e', 'Could not cancel print')  # TODO: message
 
   def _on_target_temperature_finished(self, raw_response: str) -> None:
@@ -508,16 +527,26 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       self._printer_output_model.updateState('idle')
       self._print_job_model.updateState('not_started')
       self._print_job_model.update_progress(0)
+
+      if self._requested_cancel_print:
+        self._requested_cancel_print = False  # Fulfilled
+        self.cancelPrintRequestChanged.emit()
+
     elif printer_status_model.state == MPSM2PrinterStatusModel.State.PRINTING:
-      # PRINTING includes paused print
-      if self._printer_output_model.get_printer_state() == 'idle':
-        self._printer_output_model.updateState('printing')
-        if self._requested_start_print:
-          self._requested_start_print = False  # Fulfilled.
-          self.startPrintRequestChanged.emit()
-      if self._print_job_model.get_state() == 'not_started':
-        self._print_job_model.updateState('active')
+      self._printer_output_model.updateState('printing')
+      self._print_job_model.updateState('active')
       self._print_job_model.update_progress(
           float(printer_status_model.progress))
+
+      if self._requested_start_print:
+        self._requested_start_print = False  # Fulfilled.
+        self.startPrintRequestChanged.emit()
+
+      # Printer does not acknowledge that the printing is paused.
+      # PRINTING state includes paused.
+      if self._requested_pause_print:
+        self._requested_pause_print = False  # Fulfilled.
+        self.pausePrintRequestChanged.emit()
+
     else:
-      Logger.log('e', 'Unknown printer status')  # TODO: message
+      Logger.log('e', 'Unknown printer status.')  # TODO: message
