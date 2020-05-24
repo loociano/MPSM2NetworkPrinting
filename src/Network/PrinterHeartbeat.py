@@ -19,13 +19,10 @@ class PrinterHeartbeat(QThread):
   heartbeatSignal = pyqtSignal(str, str)  # address, raw response
   onPrinterUpload = pyqtSignal(bool)
 
-  def __init__(self, parent=None) -> None:
+  def __init__(self, address: str, parent=None) -> None:
     QThread.__init__(self, parent)
-    self._printer_ip_address = None
+    self._address = address
     self.is_running = True
-
-  def set_printer_ip_address(self, printer_ip_address) -> None:
-    self._printer_ip_address = printer_ip_address
 
   def handle_printer_busy(self, is_uploading: bool) -> None:
     self.is_running = not is_uploading
@@ -38,15 +35,14 @@ class PrinterHeartbeat(QThread):
       time.sleep(PrinterHeartbeat.POLL_INTERVAL_SECS)
 
   def _inquiry(self) -> None:
-    if self._printer_ip_address:
-      connection = HTTPConnection(self._printer_ip_address,
-                                  timeout=PrinterHeartbeat.REQUEST_TIMEOUT_SECS)
-      try:
-        connection.request('GET', '/inquiry')
-        response = connection.getresponse()
-        self.heartbeatSignal.emit(self._printer_ip_address,
-                                  response.read().decode('utf-8'))
-      except (ConnectionRefusedError, socket.timeout):
-        self.heartbeatSignal.emit(self._printer_ip_address, 'timeout')
-      finally:
-        connection.close()
+    connection = HTTPConnection(self._address,
+                                timeout=PrinterHeartbeat.REQUEST_TIMEOUT_SECS)
+    try:
+      connection.request('GET', '/inquiry')
+      response = connection.getresponse()
+      self.heartbeatSignal.emit(self._address,
+                                response.read().decode('utf-8'))
+    except Exception:
+      self.heartbeatSignal.emit(self._address, 'timeout')
+    finally:
+      connection.close()

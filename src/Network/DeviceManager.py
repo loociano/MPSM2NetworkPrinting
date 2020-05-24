@@ -29,21 +29,16 @@ class DeviceManager(QObject):
   I18N_CATALOG = i18nCatalog('cura')
 
   discoveredDevicesChanged = Signal()
-  manualAddressChanged = pyqtSignal(str)
   onPrinterUpload = pyqtSignal(bool)
 
   def __init__(self) -> None:
     super().__init__()
     self._discovered_devices = {}
     self._machines = {}
+    self._background_threads = {}
     self._output_device_manager = CuraApplication.getInstance() \
       .getOutputDeviceManager()
 
-    self.heartbeat_thread = PrinterHeartbeat()
-    self.manualAddressChanged \
-      .connect(self.heartbeat_thread.set_printer_ip_address)
-    self.onPrinterUpload.connect(self.heartbeat_thread.handle_printer_busy)
-    self.heartbeat_thread.heartbeatSignal.connect(self._on_printer_heartbeat)
     ContainerRegistry.getInstance().containerRemoved.connect(
         self._on_printer_container_removed)
 
@@ -52,8 +47,8 @@ class DeviceManager(QObject):
   def start(self) -> None:
     Logger.log('d', 'Starting Device Manager.')
     for address in self._get_stored_manual_addresses():
+      self._create_heartbeat_thread(address)
       self.add_manual_device(address)
-      self.manualAddressChanged.emit(address)
 
   def stop(self) -> None:
     Logger.log('d', 'Stopping Device Manager.')
@@ -90,14 +85,19 @@ class DeviceManager(QObject):
     if address in self._get_stored_manual_addresses():
       self._remove_stored_manual_address(address)
 
-    if self.heartbeat_thread.isRunning():
-      self.heartbeat_thread.exit()
+    if address in self._background_threads:
+      self._background_threads[address].exit()
 
     self._machines = {}
 
-  def refresh_connections(self) -> None:
-    Logger.log('d', 'Refreshing connections.')
-    self._connect_to_active_machine()
+  def _create_heartbeat_thread(self, address: str) -> None:
+    Logger.log('d', 'Creating heartbeat thread for stored address: %s',
+               address)
+    heartbeat_thread = PrinterHeartbeat(address)
+    heartbeat_thread.heartbeatSignal.connect(self._on_printer_heartbeat)
+    self.onPrinterUpload.connect(heartbeat_thread.handle_printer_busy)
+    heartbeat_thread.start()
+    self._background_threads[address] = heartbeat_thread
 
   def _on_printer_container_removed(self, container) -> None:
     if container.getName() == 'Monoprice Select Mini V2':
@@ -112,8 +112,6 @@ class DeviceManager(QObject):
     if not active_machine:
       return
 
-    if not self.heartbeat_thread.isRunning():
-      self.heartbeat_thread.start()
     output_device_manager = \
       CuraApplication.getInstance().getOutputDeviceManager()
     stored_device_id = active_machine.getMetaDataEntry(self.META_NETWORK_KEY)
@@ -140,8 +138,6 @@ class DeviceManager(QObject):
         DeviceManager._get_device_id(address), address)
     device.onPrinterUpload.connect(self.onPrinterUpload)
     device.update_printer_status(response)
-    device.printerStatusChanged.emit()
-
     discovered_printers_model = \
       CuraApplication.getInstance().getDiscoveredPrintersModel()
     discovered_printers_model.addDiscoveredPrinter(
@@ -156,7 +152,6 @@ class DeviceManager(QObject):
     self.discoveredDevicesChanged.emit()
     self._connect_to_active_machine()
     self._store_manual_address(address)
-    self.manualAddressChanged.emit(address)
     if callback is not None:
       CuraApplication.getInstance().callLater(callback, True, address)
 
@@ -186,8 +181,6 @@ class DeviceManager(QObject):
       CuraApplication.getInstance().getMachineManager().setActiveMachine(
           new_machine.getId())
       self._connect_to_output_device(device, new_machine)
-      if not self.heartbeat_thread.isRunning():
-        self.heartbeat_thread.start()
       self._machines[device_id] = new_machine
 
   def _store_manual_address(self, address: str) -> None:
@@ -219,9 +212,9 @@ class DeviceManager(QObject):
   def _get_stored_manual_addresses(self) -> List[str]:
     preferences = CuraApplication.getInstance().getPreferences()
     preferences.addPreference(self.MANUAL_DEVICES_PREFERENCE_KEY, '')
-    manual_instances = preferences.getValue(
-        self.MANUAL_DEVICES_PREFERENCE_KEY).split(',')
-    return manual_instances
+    if not preferences.getValue(self.MANUAL_DEVICES_PREFERENCE_KEY):
+      return []
+    return preferences.getValue(self.MANUAL_DEVICES_PREFERENCE_KEY).split(',')
 
   def _connect_to_output_device(self, device: MPSM2NetworkedPrinterOutputDevice,
                                 machine: GlobalStack) -> None:
@@ -243,20 +236,32 @@ class DeviceManager(QObject):
     return self._discovered_devices.get(DeviceManager._get_device_id(address))
 
   def _on_printer_heartbeat(self, address: str, raw_response: str) -> None:
+    """Called when background heartbeat was received. Includes timeout.
+
+    Args:
+      address: IP address
+      raw_response: HTTP body response
+    """
     device = cast(
         MPSM2NetworkedPrinterOutputDevice,
         self._discovered_devices.get(DeviceManager._get_device_id(address)))
-    if device and raw_response == 'timeout':
-      if not device.is_busy() and not self._add_manual_device_in_progress:
+    if raw_response == 'timeout':
+      if device and device.isConnected() and not device.is_busy() and not self._add_manual_device_in_progress:
         # Request timeout is expected during job upload.
         Logger.log('d', 'Discovered device timed out. Stopping device.')
-        self.stop()
-        return
+        device.close()
+      return
+
     if not device:
-      self.start()
-    else:
-      device.update_printer_status(raw_response)
-      device.printerStatusChanged.emit()
+      self._on_printer_status_response(raw_response, address)
+      return
+
+    device = cast(
+        MPSM2NetworkedPrinterOutputDevice,
+        self._discovered_devices.get(DeviceManager._get_device_id(address)))
+    device.update_printer_status(raw_response)
+    self.discoveredDevicesChanged.emit()
+    self._connect_to_active_machine()
 
   @staticmethod
   def _get_device_id(address: str) -> str:
