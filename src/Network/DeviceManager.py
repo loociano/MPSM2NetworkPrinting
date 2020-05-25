@@ -24,7 +24,7 @@ from ..MPSM2NetworkedPrinterOutputDevice \
 class DeviceManager(QObject):
   """Discovers and manages Monoprice Select Mini V2 printers over the
   network."""
-  META_NETWORK_KEY = 'mpsm2_network_key'
+  METADATA_MPSM2_KEY = 'mpsm2_network_key'
   MANUAL_DEVICES_PREFERENCE_KEY = 'mpsm2networkprinting/manual_instances'
   I18N_CATALOG = i18nCatalog('cura')
 
@@ -58,6 +58,23 @@ class DeviceManager(QObject):
     Logger.log('d', 'Start discovery.')
     self.stop()
     self.start()
+
+  def connect_to_active_machine(self) -> None:
+    """Connects to the active machine. If the active machine is not a networked
+    Monoprice Select Mini V2 printer, it removes them as Output Device."""
+    Logger.log('d', 'Connecting to active machine.')
+    active_machine = CuraApplication.getInstance().getGlobalContainerStack()
+    if not active_machine:
+      return  # Should only occur on fresh installations of Cura.
+
+    output_device_manager = \
+      CuraApplication.getInstance().getOutputDeviceManager()
+    stored_device_id = active_machine.getMetaDataEntry(self.METADATA_MPSM2_KEY)
+    for device in self._discovered_devices.values():
+      if device.key == stored_device_id:
+        self._connect_to_output_device(device, active_machine)
+      elif device.key in output_device_manager.getOutputDeviceIds():
+        output_device_manager.removeOutputDevice(device.key)
 
   def add_manual_device(
       self, address: str,
@@ -105,21 +122,6 @@ class DeviceManager(QObject):
       for device_id in device_ids:
         self.remove_manual_device(device_id)
 
-  def _connect_to_active_machine(self) -> None:
-    Logger.log('d', 'Connecting to active machine.')
-    active_machine = CuraApplication.getInstance().getGlobalContainerStack()
-    if not active_machine:
-      return
-
-    output_device_manager = \
-      CuraApplication.getInstance().getOutputDeviceManager()
-    stored_device_id = active_machine.getMetaDataEntry(self.META_NETWORK_KEY)
-    for device in self._discovered_devices.values():
-      if device.key == stored_device_id:
-        self._connect_to_output_device(device, active_machine)
-      elif device.key in output_device_manager.getOutputDeviceIds():
-        output_device_manager.removeOutputDevice(device.key)
-
   def _on_printer_status_error(self):
     self._add_manual_device_in_progress = False
 
@@ -149,7 +151,7 @@ class DeviceManager(QObject):
 
     self._discovered_devices[device.getId()] = device
     self.discoveredDevicesChanged.emit()
-    self._connect_to_active_machine()
+    self.connect_to_active_machine()
     self._store_manual_address(address)
     if callback is not None:
       CuraApplication.getInstance().callLater(callback, True, address)
@@ -165,7 +167,7 @@ class DeviceManager(QObject):
     self.discoveredDevicesChanged.emit()
 
   def _create_machine(self, device_id: str) -> None:
-    Logger.log('d', 'Creating machine.')
+    Logger.log('d', 'Creating machine with device id %s.', device_id)
     device = self._discovered_devices.get(device_id)
     if device is None:
       return
@@ -174,16 +176,16 @@ class DeviceManager(QObject):
       new_machine = CuraStackBuilder.createMachine(device.name,
                                                    device.printerType)
       if not new_machine:
-        Logger.log('e', 'Failed to create a new machine')
+        Logger.log('e', 'Failed to create a new machine.')
         return
-      new_machine.setMetaDataEntry(self.META_NETWORK_KEY, device.key)
+      new_machine.setMetaDataEntry(self.METADATA_MPSM2_KEY, device.key)
       CuraApplication.getInstance().getMachineManager().setActiveMachine(
           new_machine.getId())
       self._connect_to_output_device(device, new_machine)
       self._machines[device_id] = new_machine
 
   def _store_manual_address(self, address: str) -> None:
-    Logger.log('d', 'Storing address %s in user preferences', address)
+    Logger.log('d', 'Storing address %s in user preferences.', address)
     stored_addresses = self._get_stored_manual_addresses()
     if address in stored_addresses:
       return  # Prevent duplicates.
@@ -219,7 +221,7 @@ class DeviceManager(QObject):
                                 machine: GlobalStack) -> None:
     Logger.log('d', 'Connecting to Output Device with key: %s.', device.key)
     machine.setName(device.name)
-    machine.setMetaDataEntry(self.META_NETWORK_KEY, device.key)
+    machine.setMetaDataEntry(self.METADATA_MPSM2_KEY, device.key)
     machine.setMetaDataEntry('group_name', device.name)
     machine.addConfiguredConnectionType(device.connectionType.value)
 

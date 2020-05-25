@@ -45,7 +45,7 @@ class MPSM2OutputDevicePlugin(OutputDevicePlugin):
 
   # Overrides
   def refreshConnections(self) -> None:
-    return  # Connection refreshes are handled by heartbeat threads.
+    self._device_manager.connect_to_active_machine()
 
   # Overrides
   def canAddManualDevice(self,
