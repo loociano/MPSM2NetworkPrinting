@@ -2,6 +2,7 @@
 Copyright 2020 Luc Rubio <luc@loociano.com>
 Plugin is licensed under the GNU Lesser General Public License v3.0.
 """
+from UM.Settings.Interfaces import ContainerInterface
 from typing import Optional, Callable, List, cast
 
 from PyQt5.QtCore import pyqtSignal, QObject
@@ -102,7 +103,10 @@ class DeviceManager(QObject):
       self._remove_stored_manual_address(address)
 
     if address in self._background_threads:
-      self._background_threads[address].exit()
+      Logger.log('d', 'Stopping background thread for address %s.', address)
+      self._background_threads[address].stopBeat()
+      self._background_threads[address].quit()
+      del self._background_threads[address]
 
     self._machines = {}
 
@@ -115,12 +119,11 @@ class DeviceManager(QObject):
     heartbeat_thread.start()
     self._background_threads[address] = heartbeat_thread
 
-  def _on_printer_container_removed(self, container) -> None:
-    if container.getName() == 'Monoprice Select Mini V2':
-      device_ids = set(self._discovered_devices.keys())
-      # FIXME: this is a simplification.
-      for device_id in device_ids:
-        self.remove_manual_device(device_id)
+  def _on_printer_container_removed(self,
+                                    container: ContainerInterface) -> None:
+    device_id = container.getMetaDataEntry(self.METADATA_MPSM2_KEY)
+    if device_id in self._discovered_devices:
+      self.remove_manual_device(device_id)
 
   def _on_printer_status_error(self):
     self._add_manual_device_in_progress = False
@@ -168,7 +171,8 @@ class DeviceManager(QObject):
 
   def _create_machine(self, device_id: str) -> None:
     Logger.log('d', 'Creating machine with device id %s.', device_id)
-    device = self._discovered_devices.get(device_id)
+    device = cast(MPSM2NetworkedPrinterOutputDevice,
+                  self._discovered_devices.get(device_id))
     if device is None:
       return
 
@@ -182,6 +186,7 @@ class DeviceManager(QObject):
       CuraApplication.getInstance().getMachineManager().setActiveMachine(
           new_machine.getId())
       self._connect_to_output_device(device, new_machine)
+      self._create_heartbeat_thread(device.ipAddress)
       self._machines[device_id] = new_machine
 
   def _store_manual_address(self, address: str) -> None:
@@ -247,7 +252,8 @@ class DeviceManager(QObject):
         MPSM2NetworkedPrinterOutputDevice,
         self._discovered_devices.get(DeviceManager._get_device_id(address)))
     if raw_response == 'timeout':
-      if device and device.isConnected() and not device.is_busy() and not self._add_manual_device_in_progress:
+      if device and device.isConnected() and not device.is_busy() and \
+          not self._add_manual_device_in_progress:
         # Request timeout is expected during job upload.
         Logger.log('d', 'Discovered device timed out. Stopping device.')
         device.close()

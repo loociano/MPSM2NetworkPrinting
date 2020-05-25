@@ -22,15 +22,19 @@ class PrinterHeartbeat(QThread):
   def __init__(self, address: str, parent=None) -> None:
     QThread.__init__(self, parent)
     self._address = address
-    self.is_running = True
+    self._is_running = True
+    self._is_uploading = False
 
   def handle_printer_busy(self, is_uploading: bool) -> None:
-    self.is_running = not is_uploading
+    self._is_uploading = is_uploading
+
+  def stopBeat(self):
+    self._is_running = False
 
   # Override
   def run(self) -> None:
-    while True:
-      if self.is_running:
+    while self._is_running:
+      if not self._is_uploading:
         self._inquiry()
       time.sleep(PrinterHeartbeat.POLL_INTERVAL_SECS)
 
