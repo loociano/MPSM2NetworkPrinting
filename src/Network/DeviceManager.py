@@ -266,6 +266,11 @@ class DeviceManager(QObject):
     device = cast(
         MPSM2NetworkedPrinterOutputDevice,
         self._discovered_devices.get(DeviceManager._get_device_id(address)))
+    if not device.isConnected():
+      Logger.log('d', 'Printer at %s is up again. Reconnecting.', address)
+      self.connect_to_active_machine()
+      self.discoveredDevicesChanged.emit()
+
     device.update_printer_status(raw_response)
 
   @staticmethod
