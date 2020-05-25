@@ -332,6 +332,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       raw_response: HTTP body response containing the printer status.
     """
     self._printer_raw_response = raw_response
+    self.printerStatusChanged.emit()
 
   def is_busy(self) -> bool:
     """

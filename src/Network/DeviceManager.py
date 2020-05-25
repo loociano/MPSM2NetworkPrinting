@@ -48,7 +48,6 @@ class DeviceManager(QObject):
     Logger.log('d', 'Starting Device Manager.')
     for address in self._get_stored_manual_addresses():
       self._create_heartbeat_thread(address)
-      self.add_manual_device(address)
 
   def stop(self) -> None:
     Logger.log('d', 'Stopping Device Manager.')
@@ -260,8 +259,6 @@ class DeviceManager(QObject):
         MPSM2NetworkedPrinterOutputDevice,
         self._discovered_devices.get(DeviceManager._get_device_id(address)))
     device.update_printer_status(raw_response)
-    self.discoveredDevicesChanged.emit()
-    self._connect_to_active_machine()
 
   @staticmethod
   def _get_device_id(address: str) -> str:
