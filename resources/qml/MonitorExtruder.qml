@@ -50,7 +50,7 @@ Item {
         }
         color: targetHotendTemperatureLabel.visible > 0 ? 'transparent' : UM.Theme.getColor('monitor_skeleton_loading')
         height: 18 * screenScaleFactor
-        width: Math.max(targetHotendTemperatureLabel.contentWidth, 36 * screenScaleFactor)
+        width: 36 * screenScaleFactor
         radius: 2 * screenScaleFactor
 
         Label {
