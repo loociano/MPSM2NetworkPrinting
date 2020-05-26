@@ -2,7 +2,6 @@
 Copyright 2020 Luc Rubio <luc@loociano.com>
 Plugin is licensed under the GNU Lesser General Public License v3.0.
 """
-import socket
 import time
 from http.client import HTTPConnection
 

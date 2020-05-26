@@ -63,14 +63,6 @@ def _build_printer_conf_model() -> PrinterConfigurationModel:
 class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   """Represents a networked OutputDevice for Monoprice Select Mini V2
   printers."""
-  META_NETWORK_KEY = 'mpsm2_network_key'
-  MPSM2_PROPERTIES = {
-      b'name': b'Monoprice Select Mini V2',
-      b'machine': b'Malyan M200',
-      b'manual': b'true',
-      b'printer_type': b'monoprice_select_mini_v2',
-      b'firmware_version': b'Unknown',
-  }
   MAX_TARGET_HOTEND_TEMPERATURE = 260  # celsius
   MAX_TARGET_BED_TEMPERATURE = 85  # celsius
 
@@ -82,19 +74,28 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   hasTargetHotendInProgressChanged = pyqtSignal()
   hasTargetBedInProgressChanged = pyqtSignal()
 
-  def __init__(self, device_id: str, address: str, parent=None) -> None:
+  def __init__(self, device_id: str, address: str, instance_number=1,
+               parent=None) -> None:
     """Constructor
 
     Args:
       device_id: 'manual:<ip_address>'
       address: IP address, for example '192.168.0.70'
     """
-    MPSM2NetworkedPrinterOutputDevice.MPSM2_PROPERTIES[b'address'] \
-      = address.encode('utf-8')
+    device_name = 'Monoprice Select Mini V2{}'.format(
+        ' #{}'.format(instance_number) if instance_number > 1 else '')
+    mpsm2_properties = {
+        b'name': device_name.encode('utf-8'),
+        b'machine': b'Malyan M200',
+        b'manual': b'true',
+        b'printer_type': b'monoprice_select_mini_v2',
+        b'firmware_version': b'Unknown',
+        b'address': address.encode('utf-8'),
+    }
     super().__init__(
         device_id=device_id,
         address=address,
-        properties=MPSM2NetworkedPrinterOutputDevice.MPSM2_PROPERTIES,
+        properties=mpsm2_properties,
         connection_type=ConnectionType.NetworkConnection,
         parent=parent)
     self._printer_output_controller = MPSM2OutputController(self)

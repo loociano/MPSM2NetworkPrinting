@@ -138,8 +138,14 @@ class DeviceManager(QObject):
 
     Logger.log('d', 'Received response from printer on address %s: %s.',
                address, response)
+    self._store_manual_address(address)
+    instance_number = 1
+    try:
+      instance_number = self._get_stored_manual_addresses().index(address) + 1
+    except ValueError:
+      Logger.log('e', 'Could not find address %s in user preferences', address)
     device = MPSM2NetworkedPrinterOutputDevice(
-        DeviceManager._get_device_id(address), address)
+        DeviceManager._get_device_id(address), address, instance_number)
     device.onPrinterUpload.connect(self.onPrinterUpload)
     device.update_printer_status(response)
     discovered_printers_model = \
@@ -155,7 +161,6 @@ class DeviceManager(QObject):
     self._discovered_devices[device.getId()] = device
     self.discoveredDevicesChanged.emit()
     self.connect_to_active_machine()
-    self._store_manual_address(address)
     if callback is not None:
       CuraApplication.getInstance().callLater(callback, True, address)
 
@@ -177,7 +182,9 @@ class DeviceManager(QObject):
       return
 
     if self._machines.get(device_id) is None:
-      new_machine = CuraStackBuilder.createMachine(device.name,
+      machine_name = device.name if len(self._machines) == 0 \
+        else device.name + '#{}'.format(len(self._machines) + 1)
+      new_machine = CuraStackBuilder.createMachine(machine_name,
                                                    device.printerType)
       if not new_machine:
         Logger.log('e', 'Failed to create a new machine.')
