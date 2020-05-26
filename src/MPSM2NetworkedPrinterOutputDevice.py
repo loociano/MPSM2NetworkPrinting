@@ -9,9 +9,8 @@ from PyQt5.QtCore import pyqtProperty, pyqtSignal, QObject, pyqtSlot
 
 from UM.FileHandler.FileHandler import FileHandler
 from UM.Logger import Logger
-from UM.i18n import i18nCatalog
 from UM.Scene.SceneNode import SceneNode
-
+from UM.i18n import i18nCatalog
 # pylint:disable=import-error
 from cura.CuraApplication import CuraApplication
 from cura.PrinterOutput.Models.ExtruderConfigurationModel \
@@ -23,24 +22,23 @@ from cura.PrinterOutput.NetworkedPrinterOutputDevice \
   import NetworkedPrinterOutputDevice, AuthState
 from cura.PrinterOutput.PrinterOutputDevice \
   import ConnectionType, ConnectionState
-
+from .GCodeWriteFileJob import GCodeWriteFileJob
 # pylint:disable=relative-beyond-top-level
 from .MPSM2OutputController import MPSM2OutputController
-from .Models.MPSM2PrinterOutputModel import MPSM2PrinterOutputModel
-from .Models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
-from .Models.MPSM2PrintJobOutputModel import MPSM2PrintJobOutputModel
-from .Network.ApiClient import ApiClient
-from .GCodeWriteFileJob import GCodeWriteFileJob
-from .Messages.PrintJobUploadProgressMessage \
-  import PrintJobUploadProgressMessage
 from .Messages.PrintJobUploadBlockedMessage \
   import PrintJobUploadBlockedMessage
-from .Messages.PrintJobUploadSuccessMessage \
-  import PrintJobUploadSuccessMessage
 from .Messages.PrintJobUploadCancelMessage \
   import PrintJobUploadCancelMessage
 from .Messages.PrintJobUploadIsPrintingMessage \
   import PrintJobUploadIsPrintingMessage
+from .Messages.PrintJobUploadProgressMessage \
+  import PrintJobUploadProgressMessage
+from .Messages.PrintJobUploadSuccessMessage \
+  import PrintJobUploadSuccessMessage
+from .Models.MPSM2PrintJobOutputModel import MPSM2PrintJobOutputModel
+from .Models.MPSM2PrinterOutputModel import MPSM2PrinterOutputModel
+from .Models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
+from .Network.ApiClient import ApiClient
 from .Parser.MPSM2PrinterStatusParser \
   import MPSM2PrinterStatusParser
 
@@ -106,14 +104,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._requested_cancel_print = False
     self._requested_hotend_temperature = None  # int
     self._requested_bed_temperature = None  # int
+    self.setName(device_name)
 
-    # Set the display name from the properties.
-    self.setName(self.getProperty('name'))
-
-    # Set the display name of the printer type.
-    definitions = CuraApplication.getInstance().getContainerRegistry() \
-      .findContainers(id=self.printerType)
-    self._printer_type_name = definitions[0].getName() if definitions else ''
     self._job_upload_message = PrintJobUploadProgressMessage(
         self._on_print_upload_cancelled)
     self._api_client = ApiClient(self.address,

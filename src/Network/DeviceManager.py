@@ -2,7 +2,6 @@
 Copyright 2020 Luc Rubio <luc@loociano.com>
 Plugin is licensed under the GNU Lesser General Public License v3.0.
 """
-from UM.Settings.Interfaces import ContainerInterface
 from typing import Optional, Callable, List, cast
 
 from PyQt5.QtCore import pyqtSignal, QObject
@@ -10,6 +9,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 from UM import i18nCatalog
 from UM.Logger import Logger
 from UM.Settings.ContainerRegistry import ContainerRegistry
+from UM.Settings.Interfaces import ContainerInterface
 from UM.Signal import Signal
 # pylint:disable=import-error
 from cura.CuraApplication import CuraApplication
@@ -232,9 +232,6 @@ class DeviceManager(QObject):
   def _connect_to_output_device(self, device: MPSM2NetworkedPrinterOutputDevice,
                                 machine: GlobalStack) -> None:
     Logger.log('d', 'Connecting to Output Device with key: %s.', device.key)
-    machine.setName(device.name)
-    machine.setMetaDataEntry(self.METADATA_MPSM2_KEY, device.key)
-    machine.setMetaDataEntry('group_name', device.name)
     machine.addConfiguredConnectionType(device.connectionType.value)
 
     if not device.isConnected():
