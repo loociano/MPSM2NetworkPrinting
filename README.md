@@ -43,7 +43,7 @@ _This software is unofficial and not affiliated with Monoprice. Use at your own 
 
 ## Development
 
-* Clone [monoprice-select-mini-v2-api-mock](https://github.com/loociano/monoprice-select-mini-v2-api-mock) to simulate a Monoprice Select Mini V2 printer running locally.
+(Optional) clone [monoprice-select-mini-v2-api-mock](https://github.com/loociano/monoprice-select-mini-v2-api-mock) to simulate a Monoprice Select Mini V2 printer running locally.
 
 ## Author
 
