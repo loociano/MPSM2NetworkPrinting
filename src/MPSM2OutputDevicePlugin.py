@@ -56,8 +56,8 @@ class MPSM2OutputDevicePlugin(OutputDevicePlugin):
   def addManualDevice(
       self, address: str,
       callback: Optional[Callable[[bool, str], None]] = None) -> None:
-    self._device_manager.add_manual_device(address, callback)
+    self._device_manager.add_device(address, callback)
 
   # Overrides
   def removeManualDevice(self, key: str, address: Optional[str] = None) -> None:
-    self._device_manager.remove_manual_device(key, address)
+    self._device_manager.remove_device(key, address)

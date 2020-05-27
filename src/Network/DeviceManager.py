@@ -77,10 +77,11 @@ class DeviceManager(QObject):
       elif device.key in output_device_manager.getOutputDeviceIds():
         output_device_manager.removeOutputDevice(device.key)
 
-  def add_manual_device(
-      self, address: str,
+  def add_device(
+      self,
+      address: str,
       callback: Optional[Callable[[bool, str], None]] = None) -> None:
-    Logger.log('d', 'Requesting to add manual device with address: %s', address)
+    Logger.log('d', 'Requesting to add device with address: %s.', address)
     self._add_manual_device_in_progress = True
     api_client = ApiClient(address, lambda error: Logger.log('e', str(error)))
     api_client.get_printer_status(
@@ -88,8 +89,8 @@ class DeviceManager(QObject):
             response, address, callback),
         self._on_printer_status_error)
 
-  def remove_manual_device(self, device_id: str,
-                           address: Optional[str] = None) -> None:
+  def remove_device(self, device_id: str,
+                    address: Optional[str] = None) -> None:
     Logger.log('d', 'Removing manual device with device_id: %s and address: %s',
                device_id, address)
     if device_id not in self._discovered_devices and address is not None:
@@ -123,7 +124,7 @@ class DeviceManager(QObject):
                                     container: ContainerInterface) -> None:
     device_id = container.getMetaDataEntry(self.METADATA_MPSM2_KEY)
     if device_id in self._discovered_devices:
-      self.remove_manual_device(device_id)
+      self.remove_device(device_id)
 
   def _on_printer_status_error(self):
     self._add_manual_device_in_progress = False
