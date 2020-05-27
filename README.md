@@ -1,21 +1,17 @@
 # Cura network plugin for Monoprice Select Mini V2
 
-## Overview
-
 This plugin for [Cura](https://github.com/ultimaker/cura) enables network interoperability with Monoprice Select Mini V2 printers.
 
-This software is unofficial and not affiliated with Monoprice.
+_This software is unofficial and not affiliated with Monoprice. Use at your own risk._
 
 ## How to install
 
-* **Recommended**: go to Cura → Marketplace. Install plugin **Network support for Monoprice Select Mini V2**.
-
-* Manually: download this repository and move to the Cura plugins directory. On Windows, it is 
-`C:\Program Files\Ultimaker Cura 4.6\plugins\`.
+* Install or upgrade to [Cura 4.6.0](https://ultimaker.com/software/ultimaker-cura) or later.
+* Download the latest [plugin release](https://github.com/loociano/MPSM2NetworkPrinting/releases) and drag and drop the `.curapackage` file into Cura. Restart Cura to apply the changes.
 
 ## How to use
 
-1. **Important**: due to [a bug](https://github.com/Ultimaker/Cura/issues/7739) in Cura, only one network plugin can be enabled when adding network printers by IP address. Please click on **Marketplace** and disable `UM3 Network Printing` plugin temporarily to add the printer.
+1. **Important**: due to [a bug](https://github.com/Ultimaker/Cura/issues/7739) in Cura 4.6.1 or earlier, you need to temporarily disable the **UM3 Network Printing** plugin to add the printer over the network. Go to Marketplace → Installed and disable **UM3 Network Printing** plugin. Restart Cura to apply changes.
 
 1. In Cura, go to Settings → Printer →  **Add Printer**.
 
@@ -44,6 +40,10 @@ This software is unofficial and not affiliated with Monoprice.
    ![](https://github.com/loociano/MPSM2NetworkPrinting/blob/master/resources/png/cura-prepare-model.png?raw=true)
 
    ![](https://github.com/loociano/MPSM2NetworkPrinting/blob/master/resources/png/cura-sending-print-job.png?raw=true)
+
+## Development
+
+* Clone [monoprice-select-mini-v2-api-mock](https://github.com/loociano/monoprice-select-mini-v2-api-mock) to simulate a Monoprice Select Mini V2 printer running locally.
 
 ## Author
 
