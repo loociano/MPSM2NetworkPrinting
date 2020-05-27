@@ -120,6 +120,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self.setAuthenticationState(AuthState.Authenticated)
     self._load_monitor_tab()
     self._set_ui_elements()
+    self._api_client.increase_upload_speed(self._on_increased_upload_speed)
 
   @pyqtProperty(QObject, notify=printerStatusChanged)
   def printer(self) -> PrinterOutputModel:
@@ -436,6 +437,11 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     if raw_response.upper() != 'OK':
       # TODO: UI message
       Logger.log('e', 'Could not set target temperature.')
+
+  def _on_increased_upload_speed(self, raw_response: str) -> None:
+    if raw_response.upper() != 'OK':
+      # TODO: UI message
+      Logger.log('e', 'Could not increase the upload speed.')
 
   def _set_ui_elements(self) -> None:
     """Sets Cura UI elements corresponding to this device."""

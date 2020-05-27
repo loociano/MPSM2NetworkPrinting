@@ -38,6 +38,21 @@ class ApiClient:
     reply = self._manager.get(self._create_empty_request('/inquiry'))
     self._add_callback(reply, on_finished, on_error)
 
+  def increase_upload_speed(self, on_finished: Optional[Callable] = None,
+                            on_error=None) -> None:
+    """Tells the printer to increase the upload speed to 91 Kbps.
+
+    Args:
+      on_finished: callback after request completes.
+      on_error: callback if the request fails.
+    """
+    # Default upload speed is 39 Kbps (level 2).
+    # Monoprice Select Mini V2 supports 91 Kbps (level 4).
+    # Source: https://github.com/nokemono42/MP-Select-Mini-Web
+    reply = self._manager.get(self._create_empty_request('/set?code=M563%20S4'))
+    if on_finished:
+      self._add_callback(reply, on_finished, on_error)
+
   def start_print(self, on_finished: Optional[Callable] = None,
                   on_error=None) -> None:
     """Tells the printer to start printing.
