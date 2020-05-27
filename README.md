@@ -6,11 +6,12 @@ _This software is unofficial and not affiliated with Monoprice. Use at your own 
 
 ## How to install
 
-Download the latest [release](https://github.com/loociano/MPSM2NetworkPrinting/releases) and drag and drop the `.curapackage` file into Cura. Restart Cura to apply the changes.
+* Install or upgrade to [Cura 4.6.0](https://ultimaker.com/software/ultimaker-cura) or later.
+* Download the latest [plugin release](https://github.com/loociano/MPSM2NetworkPrinting/releases) and drag and drop the `.curapackage` file into Cura. Restart Cura to apply the changes.
 
 ## How to use
 
-1. **Important**: due to [a bug](https://github.com/Ultimaker/Cura/issues/7739) in Cura, you need to temporarily disable the **UM3 Network Printing** plugin to add the printer over the network. Go to Marketplace → Installed and disable **UM3 Network Printing** plugin. Restart Cura to apply changes.
+1. **Important**: due to [a bug](https://github.com/Ultimaker/Cura/issues/7739) in Cura 4.6.1 or earlier, you need to temporarily disable the **UM3 Network Printing** plugin to add the printer over the network. Go to Marketplace → Installed and disable **UM3 Network Printing** plugin. Restart Cura to apply changes.
 
 1. In Cura, go to Settings → Printer →  **Add Printer**.
 
