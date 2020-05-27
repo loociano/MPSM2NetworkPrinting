@@ -79,13 +79,13 @@ class PrintJobUploadProgressMessage(Message):
     Returns:
       Human-readable count down.
     """
-    minutes = round(millis / 60000)
-    seconds = round((millis / 1000) % 60)
-    if minutes > 0:
-      if minutes == 1:
+    minutes = millis / 60000
+    seconds = (millis / 1000) % 60
+    if minutes >= 1:
+      if round(minutes) == 1:
         return 'Approximately 1 minute left.'
-      return 'Approximately {} minutes left. '.format(minutes)
-    return 'Approximately {} seconds left.'.format(seconds)
+      return 'Approximately {} minutes left. '.format(round(minutes))
+    return 'Approximately {} seconds left.'.format(round(seconds))
 
   def _on_action_triggered(self, message: str, action: str) -> None:
     """Called when an action from user was triggered.
