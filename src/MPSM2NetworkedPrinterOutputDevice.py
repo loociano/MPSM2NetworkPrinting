@@ -385,8 +385,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       bytes_sent: number of bytes already sent to the printer.
       bytes_total: total bytes to be sent.
     """
-    percentage = (bytes_sent / bytes_total) if bytes_total else 0
-    self._job_upload_message.setProgress(percentage * 100)
+    self._job_upload_message.update(bytes_sent, bytes_total)
     self.writeProgress.emit()
 
   def _on_print_started(self, raw_response: str) -> None:
