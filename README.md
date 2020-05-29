@@ -11,6 +11,9 @@ _This software is unofficial and not affiliated with Monoprice. Use at your own 
 ## How to install
 
 * From the Marketplace: open Cura → Marketplace → Install **Network Support for Monoprice Select Mini V2**. Restart Cura.
+
+  ![](https://github.com/loociano/MPSM2NetworkPrinting/blob/master/resources/png/cura-marketplace.png?raw=true)
+
 * Manually: download the latest [plugin release](https://github.com/loociano/MPSM2NetworkPrinting/releases) and drag and drop the `.curapackage` file into Cura. Restart Cura.
 
 ## How to use
