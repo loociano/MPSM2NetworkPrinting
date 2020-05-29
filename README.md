@@ -4,10 +4,14 @@ This plugin for [Cura](https://github.com/ultimaker/cura) enables network intero
 
 _This software is unofficial and not affiliated with Monoprice. Use at your own risk._
 
+## Requirements
+
+* [Cura 4.6.0](https://ultimaker.com/software/ultimaker-cura) or later.
+
 ## How to install
 
-* Install or upgrade to [Cura 4.6.0](https://ultimaker.com/software/ultimaker-cura) or later.
-* Download the latest [plugin release](https://github.com/loociano/MPSM2NetworkPrinting/releases) and drag and drop the `.curapackage` file into Cura. Restart Cura to apply the changes.
+* From the Marketplace: open Cura → Marketplace → Install **Network Support for Monoprice Select Mini V2**. Restart Cura.
+* Manually: download the latest [plugin release](https://github.com/loociano/MPSM2NetworkPrinting/releases) and drag and drop the `.curapackage` file into Cura. Restart Cura.
 
 ## How to use
 
