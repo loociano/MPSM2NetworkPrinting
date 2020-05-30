@@ -35,4 +35,19 @@ Item {
         verticalAlignment: Text.AlignVCenter
         renderType: Text.NativeRendering
     }
+
+    Label {
+        anchors {
+            top: progressBar.bottom
+            left: parent.left
+        }
+        text: printJob && printJob.estimated_time_left
+            ? printJob.estimated_time_left
+            : catalog.i18nc('@label', 'Calculating remaining time...')
+        color: UM.Theme.getColor('monitor_text_primary')
+        font: UM.Theme.getFont('default')
+        height: UM.Theme.getSize('monitor_text_line').height
+        verticalAlignment: Text.AlignVCenter
+        renderType: Text.NativeRendering
+    }
 }
