@@ -123,7 +123,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._api_client.increase_upload_speed(self._on_increased_upload_speed)
 
   @pyqtProperty(QObject, notify=printerStatusChanged)
-  def printer(self) -> PrinterOutputModel:
+  def printer(self) -> MPSM2PrinterOutputModel:
     """Produces main object for rendering the Printer Monitor tab."""
     if self._printer_raw_response.upper() != 'OK':
       self._on_printer_status_changed(self._printer_raw_response)

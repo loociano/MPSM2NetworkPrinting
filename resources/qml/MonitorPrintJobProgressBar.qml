@@ -28,7 +28,7 @@ Item {
             verticalCenter: parent.verticalCenter
         }
         text: printJob ? printJob.progress + '%' : '0%'
-        color: printJob && printJob.isActive ? UM.Theme.getColor('monitor_text_primary') : UM.Theme.getColor('monitor_text_disabled')
+        color: UM.Theme.getColor('monitor_text_primary')
         width: contentWidth
         font: UM.Theme.getFont('default')
         height: UM.Theme.getSize('monitor_text_line').height

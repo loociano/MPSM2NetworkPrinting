@@ -18,8 +18,7 @@ class MPSM2PrinterOutputModel(PrinterOutputModel):
     super().__init__(output_controller, number_of_extruders=1)
 
   def get_printer_state(self) -> str:
-    """Gets printer state.
-
+    """
     Returns:
       Printer state. Can be 'idle' or 'printing'.
     """

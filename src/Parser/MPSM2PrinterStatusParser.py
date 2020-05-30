@@ -26,12 +26,12 @@ class MPSM2PrinterStatusParser:
       return None
     state = matches.group(6)
     return MPSM2PrinterStatusModel(
-        int(matches.group(1)),
-        int(matches.group(2)),
-        int(matches.group(3)),
-        int(matches.group(4)),
-        int(matches.group(5)),
-        MPSM2PrinterStatusModel.State.IDLE if state == 'I'
+        hotend_temperature=int(matches.group(1)),
+        target_hotend_temperature=int(matches.group(2)),
+        bed_temperature=int(matches.group(3)),
+        target_bed_temperature=int(matches.group(4)),
+        progress=int(matches.group(5)),
+        state=MPSM2PrinterStatusModel.State.IDLE if state == 'I'
         else
         MPSM2PrinterStatusModel.State.PRINTING if state == 'P'
         else
