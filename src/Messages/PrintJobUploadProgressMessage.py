@@ -9,6 +9,8 @@ from PyQt5.QtCore import QTimer
 from UM import i18nCatalog
 from UM.Message import Message
 
+from ..Utils.TimeUtils import TimeUtils
+
 I18N_CATALOG = i18nCatalog('cura')
 
 
@@ -28,6 +30,7 @@ class PrintJobUploadProgressMessage(Message):
         dismissable=False,
         use_inactivity_timer=False)
     self._on_cancelled = on_cancelled
+    self._upload_time_millis = 0
     self.addAction('cancel', I18N_CATALOG.i18nc('@action:button', 'Cancel'),
                    'cancel',
                    I18N_CATALOG.i18nc('@action', 'Cancels job upload.'))
@@ -62,30 +65,13 @@ class PrintJobUploadProgressMessage(Message):
     if self._upload_time_millis > self.MIN_CALCULATION_TIME_MILLIS:
       speed = bytes_sent / self._upload_time_millis
       remaining_millis = (bytes_total - bytes_sent) / speed if speed else 0
-      self.setText(self._get_human_readable_countdown(remaining_millis))
+      self.setText(TimeUtils.get_human_readable_countdown(remaining_millis))
     self.setProgress(percentage * 100)
 
   def _reset_calculation_time(self):
     """Resets the estimated calculation time."""
     self._upload_time_millis = 0
     self.setText(self.CALCULATING_TEXT)
-
-  @staticmethod
-  def _get_human_readable_countdown(millis: float) -> str:
-    """
-    Args:
-      millis: time in milliseconds.
-
-    Returns:
-      Human-readable count down.
-    """
-    minutes = millis / 60000
-    seconds = (millis / 1000) % 60
-    if minutes >= 1:
-      if round(minutes) == 1:
-        return 'Approximately 1 minute left.'
-      return 'Approximately {} minutes left. '.format(round(minutes))
-    return 'Approximately {} seconds left.'.format(round(seconds))
 
   def _on_action_triggered(self, message: str, action: str) -> None:
     """Called when an action from user was triggered.
