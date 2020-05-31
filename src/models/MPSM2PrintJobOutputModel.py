@@ -18,6 +18,7 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
 
   POLL_INTERVAL_MILLIS = 100
   MIN_PERCENT_POINTS = 2  # minimum points to calculate estimated time left.
+  MAX_REMAINING_TIME_MILLIS = 24 * 60 * 60 * 1000  # arbitrary max
 
   def __init__(self, output_controller: PrinterOutputController) -> None:
     """Constructor.
@@ -30,7 +31,7 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
     self._progress = 0
     self._elapsed_print_time_millis = 0
     self._elapsed_percentage_points = None  # type: Optional[int]
-    self._remaining_print_time_millis = 24 * 60 * 60 * 1000  # arbitrary max
+    self._remaining_print_time_millis = self.MAX_REMAINING_TIME_MILLIS
     self._stopwatch = QTimer(self)
     self._stopwatch.timeout.connect(self._tick)
     self._reset()
@@ -73,7 +74,7 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
 
   def _reset(self):
     """Resets variables to calculate estimated print time left."""
-    self._remaining_print_time_millis = 24 * 60 * 60 * 1000  # arbitrary max
+    self._remaining_print_time_millis = self.MAX_REMAINING_TIME_MILLIS
     self._elapsed_print_time_millis = 0
     self._elapsed_percentage_points = None
     if self._stopwatch.isActive():
