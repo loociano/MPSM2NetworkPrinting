@@ -12,6 +12,7 @@ def getMetaData():
   """
   Returns:
     Plugin metadata.
+    https://github.com/Ultimaker/Uranium/blob/master/docs/plugins.md
   """
   return {}
 
