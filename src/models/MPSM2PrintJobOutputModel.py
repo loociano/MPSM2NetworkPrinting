@@ -66,10 +66,17 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
     if self._progress != progress:
       self._progress = progress
       if self._progress == 0:
-        self._elapsed_print_time_millis = 0
-        self._stopwatch.stop()
+        self._reset()
       else:
         self._calculate_remaining_print_time()
+
+  def _reset(self):
+    """Resets variables to calculate estimated print time left."""
+    self._remaining_print_time_millis = 24 * 60 * 60 * 1000  # arbitrary max
+    self._elapsed_print_time_millis = 0
+    self._elapsed_percentage_points = None
+    if self._stopwatch.isActive():
+      self._stopwatch.stop()
 
   def _calculate_remaining_print_time(self) -> None:
     """Calculates remaining print time based on the running time of percentage
