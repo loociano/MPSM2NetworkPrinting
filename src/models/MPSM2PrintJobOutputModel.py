@@ -33,6 +33,7 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
     self._remaining_print_time_millis = 24 * 60 * 60 * 1000  # arbitrary max
     self._stopwatch = QTimer(self)
     self._stopwatch.timeout.connect(self._tick)
+    self._reset()
 
   # Override.
   # Superclass computes progress based on elapsed time, whereas MPSM2 printers
@@ -56,7 +57,7 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
       return ''
 
     return TimeUtils.get_human_readable_countdown(
-      seconds=int(self._remaining_print_time_millis / 1000))
+        seconds=int(self._remaining_print_time_millis / 1000))
 
   def update_progress(self, progress: float) -> None:
     """Updates job progress and calculates estimated printing time left.
@@ -64,12 +65,11 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
     Args:
       progress: job progress from 0.0 to 100.0.
     """
-    if self._progress != progress:
-      self._progress = progress
-      if self._progress == 0:
-        self._reset()
-      else:
-        self._calculate_remaining_print_time()
+    if progress == 0:
+      self._reset()
+    elif self._progress != progress:
+      self._calculate_remaining_print_time()
+    self._progress = progress
 
   def _reset(self):
     """Resets variables to calculate estimated print time left."""
@@ -82,20 +82,22 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
   def _calculate_remaining_print_time(self) -> None:
     """Calculates remaining print time based on the running time of percentage
     points."""
-    if self._elapsed_print_time_millis == 0 and not self._stopwatch.isActive():
-      self._stopwatch.start(self.POLL_INTERVAL_MILLIS)
+    if self._elapsed_percentage_points is None:
+      # Skip first seen percent point.
+      self._elapsed_percentage_points = 0
+      return
+    if self._elapsed_percentage_points == 0:
+      self._elapsed_percentage_points += 1
+      if not self._stopwatch.isActive():
+        # New percent point seen. Start measuring.
+        self._stopwatch.start(self.POLL_INTERVAL_MILLIS)
       return
 
-    if self._elapsed_percentage_points is None:
-      self._elapsed_percentage_points = 0
-    else:
-      self._elapsed_percentage_points += 1
-      new_remaining_time = (100 - self._progress) \
-                           * self._elapsed_print_time_millis \
-                           / self._elapsed_percentage_points
-      # Only go down
-      if new_remaining_time < self._remaining_print_time_millis:
-        self._remaining_print_time_millis = new_remaining_time
+    new_remaining_time = (100 - self._progress) \
+                         * self._elapsed_print_time_millis \
+                         / self._elapsed_percentage_points
+    self._remaining_print_time_millis = new_remaining_time
+    self._elapsed_percentage_points += 1
 
   def _tick(self):
     """Updates stopwatch."""
