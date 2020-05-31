@@ -10,7 +10,7 @@ from PyQt5.QtCore import pyqtProperty, QTimer
 from cura.PrinterOutput import PrinterOutputController
 from cura.PrinterOutput.Models.PrintJobOutputModel import PrintJobOutputModel
 # pylint:disable=relative-beyond-top-level
-from ..Utils.TimeUtils import TimeUtils
+from ..utils.TimeUtils import TimeUtils
 
 
 class MPSM2PrintJobOutputModel(PrintJobOutputModel):

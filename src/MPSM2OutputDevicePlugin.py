@@ -12,7 +12,7 @@ from UM.OutputDevice.OutputDevicePlugin import OutputDevicePlugin
 from cura.CuraApplication import CuraApplication
 
 # pylint:disable=relative-beyond-top-level
-from .Network.DeviceManager import DeviceManager
+from .network.DeviceManager import DeviceManager
 
 
 class MPSM2OutputDevicePlugin(OutputDevicePlugin):

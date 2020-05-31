@@ -6,7 +6,7 @@ import re
 from typing import Optional
 
 # pylint:disable=relative-beyond-top-level
-from ..Models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
+from ..models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
 
 
 class MPSM2PrinterStatusParser:

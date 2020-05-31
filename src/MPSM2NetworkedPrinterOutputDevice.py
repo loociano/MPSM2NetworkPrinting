@@ -25,21 +25,21 @@ from cura.PrinterOutput.PrinterOutputDevice \
 from .GCodeWriteFileJob import GCodeWriteFileJob
 # pylint:disable=relative-beyond-top-level
 from .MPSM2OutputController import MPSM2OutputController
-from .Messages.PrintJobUploadBlockedMessage \
+from .messages.PrintJobUploadBlockedMessage \
   import PrintJobUploadBlockedMessage
-from .Messages.PrintJobUploadCancelMessage \
+from .messages.PrintJobUploadCancelMessage \
   import PrintJobUploadCancelMessage
-from .Messages.PrintJobUploadIsPrintingMessage \
+from .messages.PrintJobUploadIsPrintingMessage \
   import PrintJobUploadIsPrintingMessage
-from .Messages.PrintJobUploadProgressMessage \
+from .messages.PrintJobUploadProgressMessage \
   import PrintJobUploadProgressMessage
-from .Messages.PrintJobUploadSuccessMessage \
+from .messages.PrintJobUploadSuccessMessage \
   import PrintJobUploadSuccessMessage
-from .Models.MPSM2PrintJobOutputModel import MPSM2PrintJobOutputModel
-from .Models.MPSM2PrinterOutputModel import MPSM2PrinterOutputModel
-from .Models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
-from .Network.ApiClient import ApiClient
-from .Parser.MPSM2PrinterStatusParser \
+from .models.MPSM2PrintJobOutputModel import MPSM2PrintJobOutputModel
+from .models.MPSM2PrinterOutputModel import MPSM2PrinterOutputModel
+from .models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
+from .network.ApiClient import ApiClient
+from .parser.MPSM2PrinterStatusParser \
   import MPSM2PrinterStatusParser
 
 I18N_CATALOG = i18nCatalog('cura')

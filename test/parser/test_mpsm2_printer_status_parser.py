@@ -4,8 +4,8 @@ Plugin is licensed under the GNU Lesser General Public License v3.0.
 """
 import unittest
 
-from src.Models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
-from src.Parser.MPSM2PrinterStatusParser import MPSM2PrinterStatusParser
+from src.models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
+from src.parser.MPSM2PrinterStatusParser import MPSM2PrinterStatusParser
 
 
 class MPSM2PrinterStatusParserTest(unittest.TestCase):
