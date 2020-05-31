@@ -11,6 +11,7 @@ from UM.FileHandler.FileHandler import FileHandler
 from UM.Logger import Logger
 from UM.Scene.SceneNode import SceneNode
 from UM.i18n import i18nCatalog
+
 # pylint:disable=import-error
 from cura.CuraApplication import CuraApplication
 from cura.PrinterOutput.Models.ExtruderConfigurationModel import \
@@ -21,8 +22,9 @@ from cura.PrinterOutput.NetworkedPrinterOutputDevice \
   import NetworkedPrinterOutputDevice, AuthState
 from cura.PrinterOutput.PrinterOutputDevice \
   import ConnectionType, ConnectionState
-from .GCodeWriteFileJob import GCodeWriteFileJob
+
 # pylint:disable=relative-beyond-top-level
+from .GCodeWriteFileJob import GCodeWriteFileJob
 from .MPSM2OutputController import MPSM2OutputController
 from .messages.PrintJobUploadBlockedMessage \
   import PrintJobUploadBlockedMessage
@@ -60,7 +62,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
 
   def __init__(self, device_id: str, address: str, instance_number=1,
                parent=None) -> None:
-    """Constructor
+    """Constructor.
 
     Args:
       device_id: 'manual:<ip_address>'
@@ -114,10 +116,18 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
 
   @pyqtProperty(int, constant=True)
   def max_hotend_temperature(self) -> int:
+    """
+    Returns:
+      Maximum target hotend temperature for UI message.
+    """
     return self.MAX_TARGET_HOTEND_TEMPERATURE
 
   @pyqtProperty(int, constant=True)
   def max_bed_temperature(self) -> int:
+    """
+    Returns:
+       maximum target bed temperature for UI message.
+    """
     return self.MAX_TARGET_BED_TEMPERATURE
 
   # pylint:disable=invalid-name
@@ -171,6 +181,12 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
 
   @pyqtSlot(str, name='isValidHotendTemperature', result=bool)
   def is_valid_hotend_temperature(self, input_temperature: str) -> bool:
+    """
+    Args:
+      input_temperature: user-entered target hotend temperature.
+    Returns:
+       true if temperature within range.
+    """
     if not input_temperature.isdigit():
       return False
     if int(input_temperature) < 0 \
@@ -180,6 +196,12 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
 
   @pyqtSlot(str, name='isValidBedTemperature', result=bool)
   def is_valid_bed_temperature(self, input_temperature: str) -> bool:
+    """
+    Args:
+      input_temperature: user-entered target bed temperature.
+    Returns:
+       true if temperature within range.
+    """
     if not input_temperature.isdigit():
       return False
     if int(input_temperature) < 0 \
@@ -410,14 +432,18 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     """Called when a request to set target temperature completed.
 
     Args:
-      response: HTTP response to the target temperature
-      request.
+      response: HTTP response to the target temperature request.
     """
     if response.upper() != 'OK':
       # TODO: UI message
       Logger.log('e', 'Could not set target temperature.')
 
   def _on_increased_upload_speed(self, response: str) -> None:
+    """Called when a request to increate upload speed completed.
+
+    Args:
+      response: HTTP response to the gcode command request.
+    """
     if response.upper() != 'OK':
       # TODO: UI message
       Logger.log('e', 'Could not increase the upload speed.')
@@ -489,7 +515,11 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   def _update_printer_output_model(
       self,
       printer_status_model: MPSM2PrinterStatusModel) -> None:
-    """Updates printer and print job output models."""
+    """Updates printer and print job output models.
+
+    Args:
+      printer_status_model: parsed model from printer's status response.
+    """
     self._update_model_temperatures(printer_status_model)
 
     if printer_status_model.state == MPSM2PrinterStatusModel.State.IDLE:
@@ -523,7 +553,11 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   def _update_model_temperatures(
       self,
       printer_status_model: MPSM2PrinterStatusModel) -> None:
-    """Updates temperatures in the printer's output model."""
+    """Updates temperatures in the printer's output model.
+
+    Args:
+      printer_status_model: parsed model from printer's status response.
+    """
     self._printer_output_model.extruders[0].updateHotendTemperature(
         float(printer_status_model.hotend_temperature))
     self._printer_output_model.extruders[0].updateTargetHotendTemperature(
