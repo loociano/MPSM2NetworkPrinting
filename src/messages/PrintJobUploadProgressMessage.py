@@ -8,7 +8,6 @@ from PyQt5.QtCore import QTimer
 
 from UM import i18nCatalog
 from UM.Message import Message
-
 from ..utils.TimeUtils import TimeUtils
 
 I18N_CATALOG = i18nCatalog('cura')
@@ -18,6 +17,8 @@ class PrintJobUploadProgressMessage(Message):
   """Message displayed when a print upload is in progress."""
 
   MIN_CALCULATION_TIME_MILLIS = 5000
+  POLL_TIME_MILLIS = 10
+  MAX_REMAINING_MILLIS = 24 * 60 * 60 * 1000  # arbitrary max
   CALCULATING_TEXT = I18N_CATALOG.i18nc('@info:status',
                                         'Calculating time left...')
 
@@ -35,7 +36,8 @@ class PrintJobUploadProgressMessage(Message):
         dismissable=False,
         use_inactivity_timer=False)
     self._on_cancelled = on_cancelled
-    self._upload_time_millis = 0
+    self._elapsed_upload_time_millis = 0
+    self._remaining_time_millis = self.MAX_REMAINING_MILLIS
     self.addAction('cancel', I18N_CATALOG.i18nc('@action:button', 'Cancel'),
                    'cancel',
                    I18N_CATALOG.i18nc('@action', 'Cancels job upload.'))
@@ -49,7 +51,7 @@ class PrintJobUploadProgressMessage(Message):
     """Shows the message."""
     self.setProgress(0)
     super().show()
-    self._stopwatch.start(10)  # milliseconds
+    self._stopwatch.start(self.POLL_TIME_MILLIS)
     self._reset_calculation_time()
 
   # Override
@@ -67,16 +69,21 @@ class PrintJobUploadProgressMessage(Message):
       bytes_total: target bytes
     """
     percentage = (bytes_sent / bytes_total) if bytes_total else 0
-    if self._upload_time_millis > self.MIN_CALCULATION_TIME_MILLIS:
-      speed = bytes_sent / self._upload_time_millis
-      remaining_millis = (bytes_total - bytes_sent) / speed if speed else 0
-      self.setText(
-          TimeUtils.get_human_readable_countdown(int(remaining_millis / 1000)))
     self.setProgress(percentage * 100)
+    if self._elapsed_upload_time_millis > self.MIN_CALCULATION_TIME_MILLIS:
+      speed = bytes_sent / self._elapsed_upload_time_millis
+      remaining_millis = (bytes_total - bytes_sent) / speed if speed else 0
+      # Only go down.
+      if remaining_millis < self._remaining_time_millis:
+        self._remaining_time_millis = remaining_millis
+        self.setText(
+            TimeUtils.get_human_readable_countdown(
+                seconds=int(remaining_millis / 1000)))
 
   def _reset_calculation_time(self):
     """Resets the estimated calculation time."""
-    self._upload_time_millis = 0
+    self._elapsed_upload_time_millis = 0
+    self._remaining_time_millis = self.MAX_REMAINING_MILLIS
     self.setText(self.CALCULATING_TEXT)
 
   def _on_action_triggered(self, message: str, action: str) -> None:
@@ -91,4 +98,4 @@ class PrintJobUploadProgressMessage(Message):
 
   def _tick(self):
     """Updates stopwatch."""
-    self._upload_time_millis += 10
+    self._elapsed_upload_time_millis += self.POLL_TIME_MILLIS

@@ -17,6 +17,7 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
   """Print Job Output Model."""
 
   POLL_INTERVAL_MILLIS = 100
+  MIN_PERCENT_POINTS = 2  # minimum points to calculate estimated time left.
 
   def __init__(self, output_controller: PrinterOutputController) -> None:
     """Constructor.
@@ -51,11 +52,11 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
        Human-readable estimated printing time left.
     """
     if not self._elapsed_percentage_points \
-        or self._elapsed_percentage_points < 2:
+        or self._elapsed_percentage_points < self.MIN_PERCENT_POINTS:
       return ''
 
     return TimeUtils.get_human_readable_countdown(
-        int(self._remaining_print_time_millis / 1000))
+      seconds=int(self._remaining_print_time_millis / 1000))
 
   def update_progress(self, progress: float) -> None:
     """Updates job progress and calculates estimated printing time left.
