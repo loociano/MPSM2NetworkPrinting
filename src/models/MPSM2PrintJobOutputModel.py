@@ -55,7 +55,7 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
       return ''
 
     return TimeUtils.get_human_readable_countdown(
-        self._remaining_print_time_millis)
+        self._remaining_print_time_millis / 1000)
 
   def update_progress(self, progress: float) -> None:
     """Updates job progress and calculates estimated printing time left.

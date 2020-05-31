@@ -22,6 +22,11 @@ class PrintJobUploadProgressMessage(Message):
                                         'Calculating time left...')
 
   def __init__(self, on_cancelled: Callable) -> None:
+    """Constructor.
+
+    Args:
+      on_cancelled: called when user cancels printer upload.
+    """
     super().__init__(
         title=I18N_CATALOG.i18nc('@info:status', 'Uploading model to printer'),
         text=self.CALCULATING_TEXT,
@@ -65,7 +70,8 @@ class PrintJobUploadProgressMessage(Message):
     if self._upload_time_millis > self.MIN_CALCULATION_TIME_MILLIS:
       speed = bytes_sent / self._upload_time_millis
       remaining_millis = (bytes_total - bytes_sent) / speed if speed else 0
-      self.setText(TimeUtils.get_human_readable_countdown(remaining_millis))
+      self.setText(
+          TimeUtils.get_human_readable_countdown(remaining_millis / 1000))
     self.setProgress(percentage * 100)
 
   def _reset_calculation_time(self):
