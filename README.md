@@ -1,5 +1,7 @@
 # Cura network plugin for Monoprice Select Mini V2
 
+![](https://travis-ci.org/loociano/MPSM2NetworkPrinting.svg?branch=master)
+
 This plugin for [Cura](https://github.com/ultimaker/cura) enables network interoperability with Monoprice Select Mini V2 printers.
 
 _This software is unofficial and not affiliated with Monoprice. Use at your own risk._
