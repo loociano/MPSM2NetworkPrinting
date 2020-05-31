@@ -13,11 +13,10 @@ from UM.Scene.SceneNode import SceneNode
 from UM.i18n import i18nCatalog
 # pylint:disable=import-error
 from cura.CuraApplication import CuraApplication
-from cura.PrinterOutput.Models.ExtruderConfigurationModel \
-  import ExtruderConfigurationModel
-from cura.PrinterOutput.Models.PrinterConfigurationModel \
-  import PrinterConfigurationModel
-from cura.PrinterOutput.Models.PrinterOutputModel import PrinterOutputModel
+from cura.PrinterOutput.Models.ExtruderConfigurationModel import \
+  ExtruderConfigurationModel
+from cura.PrinterOutput.Models.PrinterConfigurationModel import \
+  PrinterConfigurationModel
 from cura.PrinterOutput.NetworkedPrinterOutputDevice \
   import NetworkedPrinterOutputDevice, AuthState
 from cura.PrinterOutput.PrinterOutputDevice \
@@ -43,19 +42,6 @@ from .parser.MPSM2PrinterStatusParser \
   import MPSM2PrinterStatusParser
 
 I18N_CATALOG = i18nCatalog('cura')
-
-
-def _build_printer_conf_model() -> PrinterConfigurationModel:
-  """
-  Returns:
-    Printer's configuration model.
-  """
-  printer_configuration_model = PrinterConfigurationModel()
-  extruder_conf_model = ExtruderConfigurationModel()
-  extruder_conf_model.setPosition(0)
-  printer_configuration_model.setExtruderConfigurations([extruder_conf_model])
-  printer_configuration_model.setPrinterType('type')
-  return printer_configuration_model
 
 
 class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
@@ -97,7 +83,6 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
         connection_type=ConnectionType.NetworkConnection,
         parent=parent)
     self._printer_output_controller = MPSM2OutputController(self)
-    self._printer_raw_response = ''  # HTTP string response body
     self._is_busy = False
     self._requested_start_print = False
     self._requested_pause_print = False
@@ -125,8 +110,6 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   @pyqtProperty(QObject, notify=printerStatusChanged)
   def printer(self) -> MPSM2PrinterOutputModel:
     """Produces main object for rendering the Printer Monitor tab."""
-    if self._printer_raw_response.upper() != 'OK':
-      self._on_printer_status_changed(self._printer_raw_response)
     return self._printer_output_model
 
   @pyqtProperty(int, constant=True)
@@ -319,13 +302,13 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     job.finished.connect(self._on_print_job_created)
     job.start()
 
-  def update_printer_status(self, raw_response: str) -> None:
+  def update_printer_status(self, response: str) -> None:
     """Updates printer status.
 
     Args:
-      raw_response: HTTP body response containing the printer status.
+      response: HTTP body response containing the printer status.
     """
-    self._printer_raw_response = raw_response
+    self._on_printer_status_changed(response)
     self.printerStatusChanged.emit()
 
   def is_busy(self) -> bool:
@@ -361,14 +344,13 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self.writeFinished.emit()
     self.onPrinterUpload.emit(False)
 
-  def _on_print_upload_completed(self, raw_response: str) -> None:
+  def _on_print_upload_completed(self, response: str) -> None:
     """Called when the print job upload is completed.
 
     Args:
-      raw_response: HTTP body response from upload request.
+      response: HTTP body response from upload request.
     """
-    self._printer_raw_response = raw_response
-    if raw_response.upper() == 'OK':
+    if response.upper() == 'OK':
       self._is_busy = False
       self._job_upload_message.hide()
       PrintJobUploadSuccessMessage().show()
@@ -389,57 +371,54 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._job_upload_message.update(bytes_sent, bytes_total)
     self.writeProgress.emit()
 
-  def _on_print_started(self, raw_response: str) -> None:
+  def _on_print_started(self, response: str) -> None:
     """Called when the user starts the print job.
 
     Args:
-      raw_response: HTTP response to the start request.
+      response: HTTP response to the start request.
     """
-    self._on_print_resumed(raw_response)
+    self._on_print_resumed(response)
 
-  def _on_print_resumed(self, raw_response: str) -> None:
+  def _on_print_resumed(self, response: str) -> None:
     """Called when the user resumes the print job.
 
     Args:
-      raw_response: HTTP response to the resume request.
+      response: HTTP response to the resume request.
     """
-    self._printer_raw_response = raw_response
-    if raw_response.upper() != 'OK':
+    if response.upper() != 'OK':
       Logger.log('e', 'Could not resume print')  # TODO message
 
-  def _on_print_paused(self, raw_response: str) -> None:
+  def _on_print_paused(self, response: str) -> None:
     """Called when the user pauses the print job.
 
     Args:
-      raw_response: HTTP response to the pause request.
+      response: HTTP response to the pause request.
     """
-    self._printer_raw_response = raw_response
-    if raw_response.upper() != 'OK':
+    if response.upper() != 'OK':
       Logger.log('e', 'Could not pause print.')  # TODO: message
 
-  def _on_print_cancelled(self, raw_response: str) -> None:
+  def _on_print_cancelled(self, response: str) -> None:
     """Called when the user cancels the print job.
 
     Args:
-      raw_response: HTTP response to the cancel request.
+      response: HTTP response to the cancel request.
     """
-    self._printer_raw_response = raw_response
-    if raw_response.upper() != 'OK':
+    if response.upper() != 'OK':
       Logger.log('e', 'Could not cancel print')  # TODO: message
 
-  def _on_target_temperature_finished(self, raw_response: str) -> None:
+  def _on_target_temperature_finished(self, response: str) -> None:
     """Called when a request to set target temperature completed.
 
     Args:
-      raw_response: HTTP response to the target temperature request.
+      response: HTTP response to the target temperature
+      request.
     """
-    self._printer_raw_response = raw_response
-    if raw_response.upper() != 'OK':
+    if response.upper() != 'OK':
       # TODO: UI message
       Logger.log('e', 'Could not set target temperature.')
 
-  def _on_increased_upload_speed(self, raw_response: str) -> None:
-    if raw_response.upper() != 'OK':
+  def _on_increased_upload_speed(self, response: str) -> None:
+    if response.upper() != 'OK':
       # TODO: UI message
       Logger.log('e', 'Could not increase the upload speed.')
 
@@ -468,6 +447,19 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._monitor_view_qml_path = os.path.join(plugin_path, 'resources', 'qml',
                                                'MonitorStage.qml')
 
+  @staticmethod
+  def _build_printer_conf_model() -> PrinterConfigurationModel:
+    """
+    Returns:
+      Printer's configuration model.
+    """
+    printer_configuration_model = PrinterConfigurationModel()
+    extruder_conf_model = ExtruderConfigurationModel()
+    extruder_conf_model.setPosition(0)
+    printer_configuration_model.setExtruderConfigurations([extruder_conf_model])
+    printer_configuration_model.setPrinterType('type')
+    return printer_configuration_model
+
   def _build_printer_output_model(self) -> MPSM2PrinterOutputModel:
     """
     Returns:
@@ -479,49 +471,27 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     printer_output_model.updateName(self.address)
     printer_output_model.updateState('idle')
     printer_output_model.setAvailableConfigurations(
-        [_build_printer_conf_model()])
+        [MPSM2NetworkedPrinterOutputDevice._build_printer_conf_model()])
     printer_output_model.updateType('Monoprice Select Mini')
     printer_output_model.updateActivePrintJob(self._print_job_model)
     return printer_output_model
 
-  def _on_printer_status_changed(self, raw_response: str) -> None:
+  def _on_printer_status_changed(self, response: str) -> None:
     """Called when the printer status response is received.
 
     Args:
-      raw_response: HTTP body response to the printer status request.
+      response: HTTP body response to the printer status request.
     """
-    printer_status_model = MPSM2PrinterStatusParser.parse(raw_response)
+    printer_status_model = MPSM2PrinterStatusParser.parse(response)
     if printer_status_model:
-      self._update_model_temperatures(printer_status_model)
-      self._update_model_state(printer_status_model)
+      self._update_printer_output_model(printer_status_model)
 
-  def _update_model_temperatures(
-      self,
-      printer_status_model: MPSM2PrinterStatusModel) -> None:
-    """Updates temperatures in the printer's output model."""
-    self._printer_output_model.extruders[0].updateHotendTemperature(
-        float(printer_status_model.hotend_temperature))
-    self._printer_output_model.extruders[0].updateTargetHotendTemperature(
-        float(printer_status_model.target_hotend_temperature))
-    self._printer_output_model.updateBedTemperature(
-        float(printer_status_model.bed_temperature))
-    self._printer_output_model.updateTargetBedTemperature(
-        float(printer_status_model.target_bed_temperature))
-
-    if self._requested_hotend_temperature \
-        == printer_status_model.target_hotend_temperature:
-      self._requested_hotend_temperature = None
-      self.hasTargetHotendInProgressChanged.emit()
-
-    if self._requested_bed_temperature \
-        == printer_status_model.target_bed_temperature:
-      self._requested_bed_temperature = None
-      self.hasTargetBedInProgressChanged.emit()
-
-  def _update_model_state(
+  def _update_printer_output_model(
       self,
       printer_status_model: MPSM2PrinterStatusModel) -> None:
     """Updates printer and print job output models."""
+    self._update_model_temperatures(printer_status_model)
+
     if printer_status_model.state == MPSM2PrinterStatusModel.State.IDLE:
       self._printer_output_model.updateState('idle')
       self._print_job_model.updateState('not_started')
@@ -549,3 +519,26 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
 
     else:
       Logger.log('e', 'Unknown printer status.')  # TODO: message
+
+  def _update_model_temperatures(
+      self,
+      printer_status_model: MPSM2PrinterStatusModel) -> None:
+    """Updates temperatures in the printer's output model."""
+    self._printer_output_model.extruders[0].updateHotendTemperature(
+        float(printer_status_model.hotend_temperature))
+    self._printer_output_model.extruders[0].updateTargetHotendTemperature(
+        float(printer_status_model.target_hotend_temperature))
+    self._printer_output_model.updateBedTemperature(
+        float(printer_status_model.bed_temperature))
+    self._printer_output_model.updateTargetBedTemperature(
+        float(printer_status_model.target_bed_temperature))
+
+    if self._requested_hotend_temperature \
+        == printer_status_model.target_hotend_temperature:
+      self._requested_hotend_temperature = None
+      self.hasTargetHotendInProgressChanged.emit()
+
+    if self._requested_bed_temperature \
+        == printer_status_model.target_bed_temperature:
+      self._requested_bed_temperature = None
+      self.hasTargetBedInProgressChanged.emit()

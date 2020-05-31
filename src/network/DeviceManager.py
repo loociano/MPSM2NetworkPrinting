@@ -246,17 +246,17 @@ class DeviceManager(QObject):
   def _is_discovered(self, address: str) -> MPSM2NetworkedPrinterOutputDevice:
     return self._discovered_devices.get(DeviceManager._get_device_id(address))
 
-  def _on_printer_heartbeat(self, address: str, raw_response: str) -> None:
+  def _on_printer_heartbeat(self, address: str, response: str) -> None:
     """Called when background heartbeat was received. Includes timeout.
 
     Args:
       address: IP address
-      raw_response: HTTP body response
+      response: HTTP body response to inquiry request.
     """
     device = cast(
         MPSM2NetworkedPrinterOutputDevice,
         self._discovered_devices.get(DeviceManager._get_device_id(address)))
-    if raw_response == 'timeout':
+    if response == 'timeout':
       if device and device.isConnected() and not device.is_busy() and \
           not self._add_manual_device_in_progress:
         # Request timeout is expected during job upload.
@@ -265,7 +265,7 @@ class DeviceManager(QObject):
       return
 
     if not device:
-      self._on_printer_status_response(raw_response, address)
+      self._on_printer_status_response(response, address)
       return
 
     device = cast(
@@ -276,7 +276,7 @@ class DeviceManager(QObject):
       self.connect_to_active_machine()
       self.discoveredDevicesChanged.emit()
 
-    device.update_printer_status(raw_response)
+    device.update_printer_status(response)
 
   @staticmethod
   def _get_device_id(address: str) -> str:
