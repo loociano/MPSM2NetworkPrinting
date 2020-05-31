@@ -9,7 +9,7 @@ class TimeUtils:
   """Utilities to display time."""
 
   @staticmethod
-  def get_human_readable_countdown(seconds: float) -> str:
+  def get_human_readable_countdown(seconds: int) -> str:
     """
     Args:
       seconds: countdown in number of seconds.
@@ -17,20 +17,25 @@ class TimeUtils:
     Returns:
       Human-readable count down.
     """
-    hours = seconds / 3600
-    if hours >= 1:
-      hours = floor(hours)
-      minutes = round((seconds / 60) % 60)
-      return 'Approximately {}{} left.' \
-        .format('{} {}'
-                .format(hours, 'hours' if hours > 1 else 'hour'),
-                ', {} {}'.format(minutes,
-                                 'minutes' if minutes > 1 else 'minute')
-                if minutes > 0 else '')
+    if seconds / 3600 >= 1:
+      return TimeUtils._get_countdown_with_hours(seconds)
+    if seconds / 60 >= 1:
+      return TimeUtils._get_countdown_with_minutes(round(seconds / 60))
+    return 'Approximately {} seconds left.'.format(seconds)
 
-    minutes = seconds / 60
-    if minutes >= 1:
-      if round(minutes) == 1:
-        return 'Approximately 1 minute left.'
-      return 'Approximately {} minutes left.'.format(round(minutes))
-    return 'Approximately {} seconds left.'.format(round(seconds % 60))
+  @staticmethod
+  def _get_countdown_with_hours(seconds: int) -> str:
+    hours = floor(seconds / 3600)
+    minutes = round((seconds / 60) % 60)
+    return 'Approximately {}{} left.' \
+      .format('{} {}'
+              .format(hours, 'hours' if hours > 1 else 'hour'),
+              ', {} {}'.format(minutes,
+                               'minutes' if minutes > 1 else 'minute')
+              if minutes > 0 else '')
+
+  @staticmethod
+  def _get_countdown_with_minutes(minutes: int) -> str:
+    if minutes == 1:
+      return 'Approximately 1 minute left.'
+    return 'Approximately {} minutes left.'.format(minutes)

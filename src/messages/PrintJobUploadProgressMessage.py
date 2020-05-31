@@ -71,7 +71,7 @@ class PrintJobUploadProgressMessage(Message):
       speed = bytes_sent / self._upload_time_millis
       remaining_millis = (bytes_total - bytes_sent) / speed if speed else 0
       self.setText(
-          TimeUtils.get_human_readable_countdown(remaining_millis / 1000))
+          TimeUtils.get_human_readable_countdown(int(remaining_millis / 1000)))
     self.setProgress(percentage * 100)
 
   def _reset_calculation_time(self):
