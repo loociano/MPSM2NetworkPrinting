@@ -26,6 +26,10 @@ from cura.PrinterOutput.PrinterOutputDevice \
 # pylint:disable=relative-beyond-top-level
 from .GCodeWriteFileJob import GCodeWriteFileJob
 from .MPSM2OutputController import MPSM2OutputController
+from .messages.NetworkErrorMessage import NetworkErrorMessage
+from .messages.PrintJobCancelErrorMessage import PrintJobCancelErrorMessage
+from .messages.PrintJobPauseErrorMessage import PrintJobPauseErrorMessage
+from .messages.PrintJobStartErrorMessage import PrintJobStartErrorMessage
 from .messages.PrintJobUploadBlockedMessage \
   import PrintJobUploadBlockedMessage
 from .messages.PrintJobUploadCancelMessage \
@@ -36,6 +40,7 @@ from .messages.PrintJobUploadProgressMessage \
   import PrintJobUploadProgressMessage
 from .messages.PrintJobUploadSuccessMessage \
   import PrintJobUploadSuccessMessage
+from .messages.SetTargetTemperatureErrorMessage import SetTargetTemperatureErrorMessage
 from .models.MPSM2PrintJobOutputModel import MPSM2PrintJobOutputModel
 from .models.MPSM2PrinterOutputModel import MPSM2PrinterOutputModel
 from .models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
@@ -107,7 +112,9 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self.setAuthenticationState(AuthState.Authenticated)
     self._load_monitor_tab()
     self._set_ui_elements()
-    self._api_client.increase_upload_speed(self._on_increased_upload_speed)
+    self._api_client.increase_upload_speed(
+        self._on_increased_upload_speed,
+        self._on_increased_upload_speed_error)
 
   @pyqtProperty(QObject, notify=printerStatusChanged)
   def printer(self) -> MPSM2PrinterOutputModel:
@@ -220,7 +227,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     try:
       self._api_client.set_target_hotend_temperature(
           int(celsius),
-          self._on_target_temperature_finished)
+          self._on_target_hotend_temperature_finished,
+          self._on_target_hotend_temperature_error)
       self._requested_hotend_temperature = int(celsius)
       self.hasTargetHotendInProgressChanged.emit()
     except ValueError:
@@ -237,7 +245,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     try:
       self._api_client.set_target_bed_temperature(
           int(celsius),
-          self._on_target_temperature_finished)
+          self._on_target_bed_temperature_finished,
+          self._on_target_bed_temperature_error)
       self._requested_bed_temperature = int(celsius)
       self.hasTargetBedInProgressChanged.emit()
     except ValueError:
@@ -247,7 +256,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   def start_print(self) -> None:
     """Prints the cached model in printer."""
     Logger.log('d', 'Printing cache.gc.')
-    self._api_client.start_print(self._on_print_started)
+    self._api_client.start_print(self._on_print_started,
+                                 self._on_print_started_error)
     self._requested_start_print = True
     self.startPrintRequestChanged.emit()
 
@@ -263,7 +273,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   def pause_print(self) -> None:
     """Pauses the print job."""
     Logger.log('d', 'Pausing print.')
-    self._api_client.pause_print(self._on_print_paused)
+    self._api_client.pause_print(self._on_print_paused,
+                                 self._on_print_paused_error)
     self._requested_pause_print = True
     self.pausePrintRequestChanged.emit()
 
@@ -271,7 +282,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   def cancel_print(self) -> None:
     """Cancels the print job."""
     Logger.log('d', 'Cancelling print.')
-    self._api_client.cancel_print(self._on_print_cancelled)
+    self._api_client.cancel_print(self._on_print_cancelled,
+                                  self._on_print_cancelled_error)
     self._requested_cancel_print = True
     self.cancelPrintRequestChanged.emit()
 
@@ -408,7 +420,13 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       response: HTTP response to the resume request.
     """
     if response.upper() != 'OK':
-      Logger.log('e', 'Could not resume print')  # TODO message
+      self._on_print_started_error()
+
+  def _on_print_started_error(self) -> None:
+    """Called if there was an error to communicate the printer to start printing."""
+    self._requested_start_print = False
+    PrintJobStartErrorMessage().show()
+    self.startPrintRequestChanged.emit()
 
   def _on_print_paused(self, response: str) -> None:
     """Called when the user pauses the print job.
@@ -417,7 +435,13 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       response: HTTP response to the pause request.
     """
     if response.upper() != 'OK':
-      Logger.log('e', 'Could not pause print.')  # TODO: message
+      self._on_print_paused_error()
+
+  def _on_print_paused_error(self) -> None:
+    """Called if there was an error to communicate the printer to pause."""
+    self._requested_pause_print = False
+    PrintJobPauseErrorMessage().show()
+    self.pausePrintRequestChanged.emit()
 
   def _on_print_cancelled(self, response: str) -> None:
     """Called when the user cancels the print job.
@@ -426,27 +450,55 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       response: HTTP response to the cancel request.
     """
     if response.upper() != 'OK':
-      Logger.log('e', 'Could not cancel print')  # TODO: message
+      self._on_print_cancelled_error()
 
-  def _on_target_temperature_finished(self, response: str) -> None:
-    """Called when a request to set target temperature completed.
+  def _on_print_cancelled_error(self) -> None:
+    """Called if there was an error to communicate the printer to cancel."""
+    self._requested_cancel_print = False
+    PrintJobCancelErrorMessage().show()
+    self.cancelPrintRequestChanged.emit()
+
+  def _on_target_hotend_temperature_finished(self, response: str) -> None:
+    """Called when a request to set target hotend temperature completed.
 
     Args:
       response: HTTP response to the target temperature request.
     """
     if response.upper() != 'OK':
-      # TODO: UI message
-      Logger.log('e', 'Could not set target temperature.')
+      self._on_target_hotend_temperature_error()
+
+  def _on_target_hotend_temperature_error(self) -> None:
+    """Called if there was an error setting target hotend temperature."""
+    self._requested_hotend_temperature = False
+    SetTargetTemperatureErrorMessage().show()
+    self.hasTargetHotendInProgressChanged.emit()
+
+  def _on_target_bed_temperature_finished(self, response: str) -> None:
+    """Called when a request to set target bed temperature completed.
+
+    Args:
+      response: HTTP response to the target temperature request.
+    """
+    if response.upper() != 'OK':
+      self._on_target_bed_temperature_error()
+
+  def _on_target_bed_temperature_error(self) -> None:
+    """Called if there was an error setting target bed temperature."""
+    self._requested_bed_temperature = False
+    SetTargetTemperatureErrorMessage().show()
+    self.hasTargetBedInProgressChanged.emit()
 
   def _on_increased_upload_speed(self, response: str) -> None:
-    """Called when a request to increate upload speed completed.
+    """Called when a request to increase upload speed completed.
 
     Args:
       response: HTTP response to the gcode command request.
     """
     if response.upper() != 'OK':
-      # TODO: UI message
-      Logger.log('e', 'Could not increase the upload speed.')
+      self._on_increased_upload_speed_error()
+
+  def _on_increased_upload_speed_error(self) -> None:
+    NetworkErrorMessage().show()
 
   def _set_ui_elements(self) -> None:
     """Sets Cura UI elements corresponding to this device."""
@@ -548,7 +600,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
         self.pausePrintRequestChanged.emit()
 
     else:
-      Logger.log('e', 'Unknown printer status.')  # TODO: message
+      Logger.log('e', 'Unknown printer status.')
+      NetworkErrorMessage().show()
 
   def _update_model_temperatures(
       self,
