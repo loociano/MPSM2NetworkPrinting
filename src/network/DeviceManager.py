@@ -170,14 +170,8 @@ class DeviceManager(QObject):
 
     Logger.log('d', 'Received response from printer on address %s: %s.',
                address, response)
-    self._store_manual_address(address)
-    instance_number = 1
-    try:
-      instance_number = self._get_stored_manual_addresses().index(address) + 1
-    except ValueError:
-      Logger.log('e', 'Could not find address %s in user preferences', address)
     device = MPSM2NetworkedPrinterOutputDevice(
-        DeviceManager._get_device_id(address), address, instance_number)
+        DeviceManager._get_device_id(address), address)
     device.onPrinterUpload.connect(self.onPrinterUpload)
     device.update_printer_status(response)
     discovered_printers_model = \
@@ -190,6 +184,7 @@ class DeviceManager(QObject):
         machine_type=device.printerType,
         device=device)
 
+    self._store_manual_address(address)
     self._discovered_devices[device.getId()] = device
     self.discoveredDevicesChanged.emit()
     self.connect_to_active_machine()
@@ -224,13 +219,12 @@ class DeviceManager(QObject):
       return
 
     if self._machines.get(device_id) is None:
-      machine_name = device.name if len(self._machines) == 0 \
-        else device.name + '#{}'.format(len(self._machines) + 1)
-      new_machine = CuraStackBuilder.createMachine(machine_name,
-                                                   device.printerType)
+      new_machine = CuraStackBuilder.createMachine(
+          device.name, device.printerType)
       if not new_machine:
         Logger.log('e', 'Failed to create a new machine.')
         return
+      new_machine.setMetaDataEntry('group_name', device.name)
       new_machine.setMetaDataEntry(self.METADATA_MPSM2_KEY, device.key)
       CuraApplication.getInstance().getMachineManager().setActiveMachine(
           new_machine.getId())
