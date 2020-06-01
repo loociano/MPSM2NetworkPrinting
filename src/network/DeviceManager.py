@@ -81,6 +81,12 @@ class DeviceManager(QObject):
       self,
       address: str,
       callback: Optional[Callable[[bool, str], None]] = None) -> None:
+    """Handles user-request to add a device by IP address.
+
+    Args:
+      address: printer's IP address.
+      callback: called after requests completes.
+    """
     Logger.log('d', 'Requesting to add device with address: %s.', address)
     self._add_manual_device_in_progress = True
     api_client = ApiClient(address, lambda error: Logger.log('e', str(error)))
@@ -91,6 +97,12 @@ class DeviceManager(QObject):
 
   def remove_device(self, device_id: str,
                     address: Optional[str] = None) -> None:
+    """Handles user-request to delete a device.
+
+    Args:
+      device_id: device identifier 'manual:<ip_address>'.
+      address: printer's IP address.
+    """
     Logger.log('d', 'Removing manual device with device_id: %s and address: %s',
                device_id, address)
     if device_id not in self._discovered_devices and address is not None:
@@ -112,6 +124,11 @@ class DeviceManager(QObject):
     self._machines = {}
 
   def _create_heartbeat_thread(self, address: str) -> None:
+    """Creates and starts a background thread to ping the printer status.
+
+    Args
+      address: printer's IP address.
+    """
     Logger.log('d', 'Creating heartbeat thread for stored address: %s',
                address)
     heartbeat_thread = PrinterHeartbeat(address)
@@ -122,16 +139,30 @@ class DeviceManager(QObject):
 
   def _on_printer_container_removed(self,
                                     container: ContainerInterface) -> None:
+    """Called when the user deletes a printer. Removes device if it is managed
+    by this plugin.
+
+    Args:
+      container: deleted container.
+    """
     device_id = container.getMetaDataEntry(self.METADATA_MPSM2_KEY)
     if device_id in self._discovered_devices:
       self.remove_device(device_id)
 
   def _on_printer_status_error(self):
+    """Called when the printer status has error."""
     self._add_manual_device_in_progress = False
 
   def _on_printer_status_response(
       self, response, address: str,
       callback: Optional[Callable[[bool, str], None]] = None) -> None:
+    """Called when the printer status requests completes.
+
+    Args:
+      response: response to the status request. Can be 'timeout'.
+      address: printer's IP address.
+      callback: called after this function finishes.
+    """
     self._add_manual_device_in_progress = False
     if response is None and callback is not None:
       CuraApplication.getInstance().callLater(callback, False, address)
@@ -166,6 +197,11 @@ class DeviceManager(QObject):
       CuraApplication.getInstance().callLater(callback, True, address)
 
   def _on_discovered_device_removed(self, device_id: str) -> None:
+    """Called when a discovered device by this plugin is removed.
+
+    Args:
+      device_id: device identifier.
+    """
     Logger.log('d', 'Removing discovered device with device_id: %s', device_id)
     device = self._discovered_devices.pop(device_id, None)
     if not device:
@@ -176,6 +212,11 @@ class DeviceManager(QObject):
     self.discoveredDevicesChanged.emit()
 
   def _create_machine(self, device_id: str) -> None:
+    """Creates a machine. Called when user adds a discovered machine.
+
+    Args:
+      device_id: device identifier.
+    """
     Logger.log('d', 'Creating machine with device id %s.', device_id)
     device = cast(MPSM2NetworkedPrinterOutputDevice,
                   self._discovered_devices.get(device_id))
@@ -198,6 +239,11 @@ class DeviceManager(QObject):
       self._machines[device_id] = new_machine
 
   def _store_manual_address(self, address: str) -> None:
+    """Stores IP address in Cura user's preferences.
+
+    Args:
+      address: printer's IP address.
+    """
     Logger.log('d', 'Storing address %s in user preferences.', address)
     stored_addresses = self._get_stored_manual_addresses()
     if address in stored_addresses:
@@ -211,6 +257,11 @@ class DeviceManager(QObject):
         self.MANUAL_DEVICES_PREFERENCE_KEY, new_value)
 
   def _remove_stored_manual_address(self, address: str) -> None:
+    """Removes IP address from Cura user's preferences.
+
+    Args:
+      address: printer's IP address.
+    """
     Logger.log('d', 'Removing address %s from user preferences.', address)
     stored_addresses = self._get_stored_manual_addresses()
     try:
@@ -224,6 +275,10 @@ class DeviceManager(QObject):
           'Could not remove address from stored_addresses, it was not there')
 
   def _get_stored_manual_addresses(self) -> List[str]:
+    """
+    Returns:
+      List of IP address from Cura user's preferences.
+    """
     preferences = CuraApplication.getInstance().getPreferences()
     preferences.addPreference(self.MANUAL_DEVICES_PREFERENCE_KEY, '')
     if not preferences.getValue(self.MANUAL_DEVICES_PREFERENCE_KEY):
@@ -232,6 +287,12 @@ class DeviceManager(QObject):
 
   def _connect_to_output_device(self, device: MPSM2NetworkedPrinterOutputDevice,
                                 machine: GlobalStack) -> None:
+    """Connects to Output Device. This makes Cura display the printer as
+    online.
+
+    Args:
+      device: Monoprice Select Mini V2 instance.
+    """
     Logger.log('d', 'Connecting to Output Device with key: %s.', device.key)
     machine.addConfiguredConnectionType(device.connectionType.value)
 
@@ -280,4 +341,8 @@ class DeviceManager(QObject):
 
   @staticmethod
   def _get_device_id(address: str) -> str:
+    """
+    Returns:
+      Device ID given an IP address.
+    """
     return 'manual:{}'.format(address)
