@@ -72,16 +72,14 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   hasTargetHotendInProgressChanged = pyqtSignal()
   hasTargetBedInProgressChanged = pyqtSignal()
 
-  def __init__(self, device_id: str, address: str, instance_number=1,
-               parent=None) -> None:
-    """Constructor
+  def __init__(self, device_id: str, address: str, parent=None) -> None:
+    """Constructor.
 
     Args:
       device_id: 'manual:<ip_address>'
       address: IP address, for example '192.168.0.70'
     """
-    device_name = 'Monoprice Select Mini V2{}'.format(
-        ' #{}'.format(instance_number) if instance_number > 1 else '')
+    device_name = 'MPSM V2 {}'.format(address)
     mpsm2_properties = {
         b'name': device_name.encode('utf-8'),
         b'machine': b'Malyan M200',
