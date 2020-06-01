@@ -35,7 +35,7 @@ class DeviceManager(QObject):
   def __init__(self) -> None:
     super().__init__()
     self._discovered_devices = {}
-    self._machines = {}
+    self._machines = {}  # TODO: populate from global containers.
     self._background_threads = {}
     self._output_device_manager = CuraApplication.getInstance() \
       .getOutputDeviceManager()
@@ -95,7 +95,7 @@ class DeviceManager(QObject):
             response, address, callback),
         self._on_printer_status_error)
 
-  def remove_device(self, device_id: str,
+  def remove_device(self, device_id: Optional[str],
                     address: Optional[str] = None) -> None:
     """Handles user-request to delete a device.
 
@@ -121,7 +121,8 @@ class DeviceManager(QObject):
       self._background_threads[address].quit()
       del self._background_threads[address]
 
-    self._machines = {}
+    if device_id in self._machines:
+      del self._machines[device_id]
 
   def _create_heartbeat_thread(self, address: str) -> None:
     """Creates and starts a background thread to ping the printer status.
@@ -146,8 +147,7 @@ class DeviceManager(QObject):
       container: deleted container.
     """
     device_id = container.getMetaDataEntry(self.METADATA_MPSM2_KEY)
-    if device_id in self._discovered_devices:
-      self.remove_device(device_id)
+    self.remove_device(device_id, DeviceManager._get_address(device_id))
 
   def _on_printer_status_error(self):
     """Called when the printer status has error."""
@@ -337,3 +337,13 @@ class DeviceManager(QObject):
       Device ID given an IP address.
     """
     return 'manual:{}'.format(address)
+
+  @staticmethod
+  def _get_address(device_id: str) -> Optional[str]:
+    """
+    Returns:
+      IP address given a device ID.
+    """
+    if not device_id:
+      return None
+    return device_id[len('manual:'):]
