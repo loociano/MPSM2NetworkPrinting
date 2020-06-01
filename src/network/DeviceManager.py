@@ -304,9 +304,6 @@ class DeviceManager(QObject):
     if device.key not in output_device_manager.getOutputDeviceIds():
       output_device_manager.addOutputDevice(device)
 
-  def _is_discovered(self, address: str) -> MPSM2NetworkedPrinterOutputDevice:
-    return self._discovered_devices.get(DeviceManager._get_device_id(address))
-
   def _on_printer_heartbeat(self, address: str, response: str) -> None:
     """Called when background heartbeat was received. Includes timeout.
 
