@@ -35,7 +35,6 @@ class DeviceManager(QObject):
   def __init__(self) -> None:
     super().__init__()
     self._discovered_devices = {}
-    self._machines = {}  # TODO: populate from global containers.
     self._background_threads = {}
     self._output_device_manager = CuraApplication.getInstance() \
       .getOutputDeviceManager()
@@ -120,9 +119,6 @@ class DeviceManager(QObject):
       self._background_threads[address].stopBeat()
       self._background_threads[address].quit()
       del self._background_threads[address]
-
-    if device_id in self._machines:
-      del self._machines[device_id]
 
   def _create_heartbeat_thread(self, address: str) -> None:
     """Creates and starts a background thread to ping the printer status.
@@ -218,7 +214,10 @@ class DeviceManager(QObject):
     if device is None:
       return
 
-    if self._machines.get(device_id) is None:
+    machine_manager = CuraApplication.getInstance().getMachineManager()
+    machine = machine_manager.getMachine(
+        'monoprice_select_mini_v2', {self.METADATA_MPSM2_KEY: device_id})
+    if machine is None:
       new_machine = CuraStackBuilder.createMachine(
           device.name, device.printerType)
       if not new_machine:
@@ -230,7 +229,6 @@ class DeviceManager(QObject):
           new_machine.getId())
       self._connect_to_output_device(device, new_machine)
       self._create_heartbeat_thread(device.ipAddress)
-      self._machines[device_id] = new_machine
 
   def _store_manual_address(self, address: str) -> None:
     """Stores IP address in Cura user's preferences.
