@@ -101,7 +101,7 @@ class ApiClient:
       self._add_callback(reply, on_finished, on_error)
 
   def upload_print(self, filename: str, payload: bytes, on_finished: Callable,
-                   on_progress: Callable, on_error=None) -> None:
+                   on_progress: Callable, on_error: Callable) -> None:
     """Uploads a file to the printer with a POST multipart/form-data request.
     Args:
       filename: name of the file to upload
@@ -128,8 +128,9 @@ class ApiClient:
                           http_multi_part.boundary(), 'utf-8'))
 
     reply = self._manager.post(request, http_multi_part)
-    self._add_callback(reply, on_finished, on_error)
+    self._add_callback(reply, on_finished, None)
     reply.uploadProgress.connect(on_progress)
+    reply.error.connect(on_error)
     # Prevent HTTP multi-part to be garbage-collected.
     self._cached_multiparts[reply] = http_multi_part
     self._upload_reply = reply  # cache to cancel
@@ -137,8 +138,9 @@ class ApiClient:
   def cancel_upload_print(self) -> None:
     """Cancels the upload request."""
     Logger.log('d', 'Cancelling upload request.')
-    if self._upload_reply:
+    if self._upload_reply is not None:
       self._upload_reply.abort()
+      self._upload_reply = None
 
   def set_target_hotend_temperature(self,
                                     celsius: int,
@@ -218,20 +220,19 @@ class ApiClient:
     Args:
       reply: HTTP response.
       on_finished: callback after request completes.
+      on_error: callback on network error or timeout.
     """
 
     def parse() -> None:
       """Parses the HTTP response."""
-      self._upload_reply = None
-
       if reply.attribute(
           QNetworkRequest.HttpStatusCodeAttribute) is None or reply.error() > 0:
         Logger.log('e', 'No response received from printer.')
-        if on_error:
+        if on_error is not None:
           on_error()
         return
 
-      on_finished(self._parse_reply(reply))
+      on_finished(ApiClient._parse_reply(reply))
 
     reply.finished.connect(parse)
 

@@ -13,7 +13,7 @@ class PrintJobUploadErrorMessage(Message):
 
   def __init__(self) -> None:
     super().__init__(
-        title=I18N_CATALOG.i18nc('@info:title', 'Network error'),
+        title=I18N_CATALOG.i18nc('@info:title', 'Upload Error'),
         text=I18N_CATALOG.i18nc('@info:text',
-                                'Could not upload the data to the printer.'),
+                                'Could not upload the model to the printer.'),
         lifetime=10)

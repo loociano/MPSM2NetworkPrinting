@@ -34,6 +34,7 @@ from .messages.PrintJobUploadBlockedMessage \
   import PrintJobUploadBlockedMessage
 from .messages.PrintJobUploadCancelMessage \
   import PrintJobUploadCancelMessage
+from .messages.PrintJobUploadErrorMessage import PrintJobUploadErrorMessage
 from .messages.PrintJobUploadIsPrintingMessage \
   import PrintJobUploadIsPrintingMessage
 from .messages.PrintJobUploadProgressMessage \
@@ -363,8 +364,9 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._is_busy = True
     self._job_upload_message.show()
     self._api_client.upload_print(job.getFileName(), job.get_gcode_output(),
-                                  self._on_print_upload_completed,
-                                  self._on_print_job_upload_progress)
+                                  self._on_print_job_upload_completed,
+                                  self._on_print_job_upload_progress,
+                                  self._on_print_job_upload_error)
 
   def _on_print_upload_cancelled(self) -> None:
     """Called when the user cancels the print upload."""
@@ -376,7 +378,18 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self.writeFinished.emit()
     self.onPrinterUpload.emit(False)
 
-  def _on_print_upload_completed(self, response: str) -> None:
+  def _on_print_job_upload_error(self) -> None:
+    """Called if there was an error uploading the model."""
+    if self._is_busy:
+      self._is_busy = False
+      self._job_upload_message.hide()
+      self._api_client.cancel_upload_print()
+      self._api_client.cancel_print()  # force cancel
+      PrintJobUploadErrorMessage().show()
+      self.writeError.emit()
+      self.onPrinterUpload.emit(False)
+
+  def _on_print_job_upload_completed(self, response: str) -> None:
     """Called when the print job upload is completed.
 
     Args:
