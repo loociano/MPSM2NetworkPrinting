@@ -88,7 +88,7 @@ class DeviceManager(QObject):
     """
     Logger.log('d', 'Requesting to add device with address: %s.', address)
     self._add_manual_device_in_progress = True
-    api_client = ApiClient(address, lambda error: Logger.log('e', str(error)))
+    api_client = ApiClient(address)
     api_client.get_printer_status(
         lambda response: self._on_printer_status_response(
             response, address, callback),

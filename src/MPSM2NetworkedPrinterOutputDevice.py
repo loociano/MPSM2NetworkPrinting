@@ -99,9 +99,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
 
     self._job_upload_message = PrintJobUploadProgressMessage(
         self._on_print_upload_cancelled)
-    self._api_client = ApiClient(self.address,
-                                 on_error=lambda error: Logger.log('e',
-                                                                   str(error)))
+    self._api_client = ApiClient(self.address)
 
     self._print_job_model = MPSM2PrintJobOutputModel(
         self._printer_output_controller)

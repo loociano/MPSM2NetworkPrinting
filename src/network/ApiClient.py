@@ -12,14 +12,18 @@ from UM.Logger import Logger
 
 
 class ApiClient:
-  """Printer REST API client."""
+  """Monoprice Select Mini REST API client."""
 
-  def __init__(self, address: str, on_error: Callable) -> None:
+  def __init__(self, ip_address: str) -> None:
+    """Constructor.
+
+    Args:
+      ip_address: printer's IP address.
+    """
     super().__init__()
-    self._manager = QNetworkAccessManager()
-    self._address = address
-    self._on_error = on_error
-    self._upload_reply = None
+    self._network_manager = QNetworkAccessManager()
+    self._ip_address = ip_address
+    self._upload_model_reply = None
 
   def get_printer_status(self, on_finished: Callable,
                          on_error: Callable) -> None:
@@ -30,11 +34,11 @@ class ApiClient:
       on_finished: callback after request completes.
       on_error: callback if the request fails.
     """
-    reply = self._manager.get(self._create_empty_request('/inquiry'))
-    self._add_callback(reply, on_finished, on_error)
+    reply = self._network_manager.get(self._create_empty_request('/inquiry'))
+    ApiClient._register_callback(reply, on_finished, on_error)
 
-  def increase_upload_speed(self, on_finished: Optional[Callable] = None,
-                            on_error=None) -> None:
+  def increase_upload_speed(
+      self, on_finished: Callable, on_error: Callable) -> None:
     """Tells the printer to increase the upload speed to 91 Kbps.
 
     Args:
@@ -44,9 +48,9 @@ class ApiClient:
     # Default upload speed is 39 Kbps (level 2).
     # Monoprice Select Mini V2 supports 91 Kbps (level 4).
     # Source: https://github.com/nokemono42/MP-Select-Mini-Web
-    reply = self._manager.get(self._create_empty_request('/set?code=M563%20S4'))
-    if on_finished:
-      self._add_callback(reply, on_finished, on_error)
+    reply = self._network_manager.get(
+        self._create_empty_request('/set?code=M563%20S4'))
+    ApiClient._register_callback(reply, on_finished, on_error)
 
   def start_print(self, on_finished: Optional[Callable] = None,
                   on_error=None) -> None:
@@ -56,11 +60,12 @@ class ApiClient:
       on_finished: callback after request completes.
       on_error: callback if the request fails.
     """
-    reply = self._manager.get(self._create_empty_request('/set?cmd={P:M}'))
-    if on_finished:
-      self._add_callback(reply, on_finished, on_error)
+    reply = self._network_manager.get(
+        self._create_empty_request('/set?cmd={P:M}'))
+    if on_finished is not None:
+      ApiClient._register_callback(reply, on_finished, on_error)
 
-  def resume_print(self, on_finished: Callable = None, on_error=None) -> None:
+  def resume_print(self, on_finished: Callable, on_error=None) -> None:
     """Tells the printer to resume a paused print.
     If called when not paused, starts the print but the printer UI breaks.
 
@@ -68,10 +73,11 @@ class ApiClient:
       on_finished: callback after request completes.
       on_error: callback if the request fails.
     """
-    reply = self._manager.get(self._create_empty_request('/set?cmd={P:R}'))
-    self._add_callback(reply, on_finished, on_error)
+    reply = self._network_manager.get(
+        self._create_empty_request('/set?cmd={P:R}'))
+    ApiClient._register_callback(reply, on_finished, on_error)
 
-  def pause_print(self, on_finished: Callable = None, on_error=None) -> None:
+  def pause_print(self, on_finished: Callable, on_error: Callable) -> None:
     """Tells the printer to pause the print.
     If called when not printing, starts the print, pauses but the UI breaks.
 
@@ -79,8 +85,9 @@ class ApiClient:
       on_finished: callback after request completes.
       on_error: callback if the request fails.
     """
-    reply = self._manager.get(self._create_empty_request('/set?cmd={P:P}'))
-    self._add_callback(reply, on_finished, on_error)
+    reply = self._network_manager.get(
+        self._create_empty_request('/set?cmd={P:P}'))
+    ApiClient._register_callback(reply, on_finished, on_error)
 
   def cancel_print(self, on_finished: Optional[Callable] = None,
                    on_error=None) -> None:
@@ -91,9 +98,10 @@ class ApiClient:
       on_finished: callback after request completes.
       on_error: callback if the request fails.
     """
-    reply = self._manager.get(self._create_empty_request('/set?cmd={P:X}'))
-    if on_finished:
-      self._add_callback(reply, on_finished, on_error)
+    reply = self._network_manager.get(
+        self._create_empty_request('/set?cmd={P:X}'))
+    if on_finished is not None:
+      ApiClient._register_callback(reply, on_finished, on_error)
 
   def upload_print(self, filename: str, payload: bytes, on_finished: Callable,
                    on_progress: Callable, on_error: Callable) -> None:
@@ -122,25 +130,26 @@ class ApiClient:
                       'multipart/form-data; boundary=%s' % str(
                           http_multi_part.boundary(), 'utf-8'))
 
-    reply = self._manager.post(request, http_multi_part)
-    self._add_callback(reply, on_finished, None)
+    reply = self._network_manager.post(request, http_multi_part)
+    # Upload is special: on_error is connected directly on reply.error
+    ApiClient._register_callback(reply, on_finished, None)
     reply.uploadProgress.connect(on_progress)
     reply.error.connect(on_error)
     # Prevent HTTP multi-part to be garbage-collected.
     http_multi_part.setParent(reply)
-    self._upload_reply = reply  # cache to cancel
+    self._upload_model_reply = reply  # cache to cancel
 
   def cancel_upload_print(self) -> None:
     """Cancels the upload request."""
     Logger.log('d', 'Cancelling upload request.')
-    if self._upload_reply is not None:
-      self._upload_reply.abort()
-      self._upload_reply = None
+    if self._upload_model_reply is not None:
+      self._upload_model_reply.abort()
+      self._upload_model_reply = None
 
   def set_target_hotend_temperature(self,
                                     celsius: int,
-                                    on_finished: Callable = None,
-                                    on_error=None) -> None:
+                                    on_finished: Callable,
+                                    on_error: Callable) -> None:
     """Tells the printer the target hotend temperature.
 
     Args:
@@ -152,14 +161,14 @@ class ApiClient:
     if celsius < 0 or celsius > 260:
       Logger.log('e', 'Target hotend temperature out of range')
       return
-    reply = self._manager.get(
+    reply = self._network_manager.get(
         self._create_empty_request('/set?cmd={{C:T{:04d}}}'.format(celsius)))
-    self._add_callback(reply, on_finished, on_error)
+    ApiClient._register_callback(reply, on_finished, on_error)
 
   def set_target_bed_temperature(self,
                                  celsius: int,
-                                 on_finished: Callable = None,
-                                 on_error=None) -> None:
+                                 on_finished: Callable,
+                                 on_error: Callable) -> None:
     """Requests the printer to set a target bed temperature.
 
     Args:
@@ -171,9 +180,9 @@ class ApiClient:
     if celsius < 0 or celsius > 85:
       Logger.log('e', 'Target bed temperature out of range')
       return
-    reply = self._manager.get(
+    reply = self._network_manager.get(
         self._create_empty_request('/set?cmd={{C:P{:03d}}}'.format(celsius)))
-    self._add_callback(reply, on_finished, on_error)
+    ApiClient._register_callback(reply, on_finished, on_error)
 
   def _create_empty_request(self, path: str) -> QNetworkRequest:
     """"Creates an empty HTTP request (GET or POST).
@@ -181,14 +190,15 @@ class ApiClient:
     Args:
       path: HTTP relative path.
     """
-    url = QUrl('http://' + self._address + path)
+    url = QUrl('http://' + self._ip_address + path)
     Logger.log('d', url.toString())
     request = QNetworkRequest(url)
     request.setAttribute(QNetworkRequest.FollowRedirectsAttribute, True)
     return request
 
-  def _add_callback(self, reply: QNetworkReply, on_finished: Callable,
-                    on_error: Optional[Callable]) -> None:
+  @staticmethod
+  def _register_callback(reply: QNetworkReply, on_finished: Callable,
+                         on_error: Optional[Callable]) -> None:
     """Adds a callback to an HTTP request.
 
     Args:
