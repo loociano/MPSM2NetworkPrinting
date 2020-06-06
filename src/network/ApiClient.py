@@ -35,7 +35,7 @@ class ApiClient:
       on_error: callback if the request fails.
     """
     reply = self._network_manager.get(self._create_empty_request('/inquiry'))
-    ApiClient._register_callback(reply, on_finished, on_error)
+    self._register_callback(reply, on_finished, on_error)
 
   def increase_upload_speed(
       self, on_finished: Callable, on_error: Callable) -> None:
@@ -50,7 +50,7 @@ class ApiClient:
     # Source: https://github.com/nokemono42/MP-Select-Mini-Web
     reply = self._network_manager.get(
         self._create_empty_request('/set?code=M563%20S4'))
-    ApiClient._register_callback(reply, on_finished, on_error)
+    self._register_callback(reply, on_finished, on_error)
 
   def start_print(self, on_finished: Optional[Callable] = None,
                   on_error=None) -> None:
@@ -63,7 +63,7 @@ class ApiClient:
     reply = self._network_manager.get(
         self._create_empty_request('/set?cmd={P:M}'))
     if on_finished is not None:
-      ApiClient._register_callback(reply, on_finished, on_error)
+      self._register_callback(reply, on_finished, on_error)
 
   def resume_print(self, on_finished: Callable, on_error=None) -> None:
     """Tells the printer to resume a paused print.
@@ -75,7 +75,7 @@ class ApiClient:
     """
     reply = self._network_manager.get(
         self._create_empty_request('/set?cmd={P:R}'))
-    ApiClient._register_callback(reply, on_finished, on_error)
+    self._register_callback(reply, on_finished, on_error)
 
   def pause_print(self, on_finished: Callable, on_error: Callable) -> None:
     """Tells the printer to pause the print.
@@ -87,7 +87,7 @@ class ApiClient:
     """
     reply = self._network_manager.get(
         self._create_empty_request('/set?cmd={P:P}'))
-    ApiClient._register_callback(reply, on_finished, on_error)
+    self._register_callback(reply, on_finished, on_error)
 
   def cancel_print(self, on_finished: Optional[Callable] = None,
                    on_error=None) -> None:
@@ -101,7 +101,7 @@ class ApiClient:
     reply = self._network_manager.get(
         self._create_empty_request('/set?cmd={P:X}'))
     if on_finished is not None:
-      ApiClient._register_callback(reply, on_finished, on_error)
+      self._register_callback(reply, on_finished, on_error)
 
   def upload_print(self, filename: str, payload: bytes, on_finished: Callable,
                    on_progress: Callable, on_error: Callable) -> None:
@@ -132,7 +132,7 @@ class ApiClient:
 
     reply = self._network_manager.post(request, http_multi_part)
     # Upload is special: on_error is connected directly on reply.error
-    ApiClient._register_callback(reply, on_finished, None)
+    self._register_callback(reply, on_finished, None)
     reply.uploadProgress.connect(on_progress)
     reply.error.connect(on_error)
     # Prevent HTTP multi-part to be garbage-collected.
@@ -163,7 +163,7 @@ class ApiClient:
       return
     reply = self._network_manager.get(
         self._create_empty_request('/set?cmd={{C:T{:04d}}}'.format(celsius)))
-    ApiClient._register_callback(reply, on_finished, on_error)
+    self._register_callback(reply, on_finished, on_error)
 
   def set_target_bed_temperature(self,
                                  celsius: int,
@@ -182,7 +182,7 @@ class ApiClient:
       return
     reply = self._network_manager.get(
         self._create_empty_request('/set?cmd={{C:P{:03d}}}'.format(celsius)))
-    ApiClient._register_callback(reply, on_finished, on_error)
+    self._register_callback(reply, on_finished, on_error)
 
   def _create_empty_request(self, path: str) -> QNetworkRequest:
     """"Creates an empty HTTP request (GET or POST).
@@ -196,8 +196,7 @@ class ApiClient:
     request.setAttribute(QNetworkRequest.FollowRedirectsAttribute, True)
     return request
 
-  @staticmethod
-  def _register_callback(reply: QNetworkReply, on_finished: Callable,
+  def _register_callback(self, reply: QNetworkReply, on_finished: Callable,
                          on_error: Optional[Callable]) -> None:
     """Adds a callback to an HTTP request.
 
@@ -216,7 +215,7 @@ class ApiClient:
           on_error()
         return
 
-      on_finished(ApiClient._parse_reply(reply))
+      on_finished(self._parse_reply(reply))
 
     reply.finished.connect(parse)
 
