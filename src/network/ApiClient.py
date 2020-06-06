@@ -17,14 +17,9 @@ class ApiClient:
   def __init__(self, address: str, on_error: Callable) -> None:
     super().__init__()
     self._manager = QNetworkAccessManager()
-    self._manager.finished.connect(self._handle_on_finished)
     self._address = address
     self._on_error = on_error
     self._upload_reply = None
-    # QHttpMultiPart objects need to be kept alive and not garbage collected
-    # during the HTTP which uses them. We hold references to these
-    # QHttpMultiPart objects here.
-    self._cached_multiparts = {}
 
   def get_printer_status(self, on_finished: Callable,
                          on_error: Callable) -> None:
@@ -132,7 +127,7 @@ class ApiClient:
     reply.uploadProgress.connect(on_progress)
     reply.error.connect(on_error)
     # Prevent HTTP multi-part to be garbage-collected.
-    self._cached_multiparts[reply] = http_multi_part
+    http_multi_part.setParent(reply)
     self._upload_reply = reply  # cache to cancel
 
   def cancel_upload_print(self) -> None:
@@ -179,27 +174,6 @@ class ApiClient:
     reply = self._manager.get(
         self._create_empty_request('/set?cmd={{C:P{:03d}}}'.format(celsius)))
     self._add_callback(reply, on_finished, on_error)
-
-  def _handle_on_finished(self, reply: QNetworkReply) -> None:
-    """Called when any previously issued HTTP request finishes.
-
-    Args:
-      reply: HTTP response
-    """
-    # Due to garbage collection, we need to cache certain bits of post
-    # operations. As we don't want to keep them around forever, delete them if
-    # we get a reply.
-    if reply.operation() == QNetworkAccessManager.PostOperation:
-      self._clear_cached_multi_part(reply)
-
-  def _clear_cached_multi_part(self, reply: QNetworkReply) -> None:
-    """Clears cached reply of a POST multipart/form-data request.
-
-    Args:
-      reply: HTTP response.
-    """
-    if reply in self._cached_multiparts:
-      del self._cached_multiparts[reply]
 
   def _create_empty_request(self, path: str) -> QNetworkRequest:
     """"Creates an empty HTTP request (GET or POST).
