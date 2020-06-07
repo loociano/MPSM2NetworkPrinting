@@ -8,6 +8,7 @@ Chart {
 
     property var temperatures // Array[number]
     property int targetTemperature
+    property int maxTemperature
 
     function generateFlatData(value) {
         var result = [];
@@ -69,7 +70,7 @@ Chart {
                     display: true,
                     position: 'right',
                     ticks: {
-                        max: 260,
+                        max: root.maxTemperature,
                         min: 0,
                         maxTicksLimit: 2
                     }

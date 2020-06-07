@@ -6,11 +6,9 @@ import UM 1.3 as UM
 import Cura 1.5 as Cura
 
 Item {
-    id: extruder
-
     property var hotendTemperature : null // int
     property var targetHotendTemperature : null // int
-    property int max_hotend_temperature : OutputDevice.max_hotend_temperature
+    property int maxHotendTemperature : OutputDevice.max_hotend_temperature
     property var hotendTemperatures : OutputDevice.historical_hotend_temperatures // Array[number]
 
     height: 40 * screenScaleFactor
@@ -105,7 +103,7 @@ Item {
                 left: parent.left
             }
             visible: false
-            text: catalog.i18nc('@text', 'Temperature must be between 0ºC and ' + max_hotend_temperature + 'ºC.')
+            text: catalog.i18nc('@text', 'Temperature must be between 0ºC and ' + maxHotendTemperature + 'ºC.')
             font: UM.Theme.getFont('default')
             color: UM.Theme.getColor('error')
             renderType: Text.NativeRendering
@@ -142,5 +140,6 @@ Item {
         height: 40 * screenScaleFactor
         temperatures: hotendTemperatures
         targetTemperature: targetHotendTemperature
+        maxTemperature: maxHotendTemperature
     }
 }
