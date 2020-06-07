@@ -96,7 +96,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._requested_cancel_print = False
     self._requested_hotend_temperature = None  # int
     self._requested_bed_temperature = None  # int
-    self._historical_hotend_temps = []
+    self._historical_hotend_temps = []  # List[int]
+    self._historical_bed_temps = []  # List[int]
     self.setName(device_name)
 
     self._job_upload_message = PrintJobUploadProgressMessage(
@@ -123,6 +124,10 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   @pyqtProperty(list, notify=printerStatusChanged)
   def historical_hotend_temperatures(self) -> list:
     return self._historical_hotend_temps
+
+  @pyqtProperty(list, notify=printerStatusChanged)
+  def historical_bed_temperatures(self) -> list:
+    return self._historical_bed_temps
 
   @pyqtProperty(int, constant=True)
   def max_hotend_temperature(self) -> int:
@@ -628,7 +633,9 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     """
     self._printer_output_model.extruders[0].updateHotendTemperature(
         float(printer_status_model.hotend_temperature))
-    self._update_historical_temperature(printer_status_model.hotend_temperature)
+    self._update_historical_temperatures(
+        printer_status_model.hotend_temperature,
+        printer_status_model.bed_temperature)
     self._printer_output_model.extruders[0].updateTargetHotendTemperature(
         float(printer_status_model.target_hotend_temperature))
     self._printer_output_model.updateBedTemperature(
@@ -646,11 +653,17 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       self._requested_bed_temperature = None
       self.hasTargetBedInProgressChanged.emit()
 
-  def _update_historical_temperature(self, hotend_temperature: int):
-    """
+  def _update_historical_temperatures(
+      self, hotend_temperature: int, bed_temperature: int) -> None:
+    """Updates data points to plot temperatures over time.
+
     Args:
       hotend_temperature: current hotend temperature in Celsius.
+      bed_temperature: current bed temperature in Celsius.
     """
     self._historical_hotend_temps.append(hotend_temperature)
     if len(self._historical_hotend_temps) > self.NUM_DATA_POINTS:
       self._historical_hotend_temps.pop(0)
+    self._historical_bed_temps.append(bed_temperature)
+    if len(self._historical_bed_temps) > self.NUM_DATA_POINTS:
+      self._historical_bed_temps.pop(0)

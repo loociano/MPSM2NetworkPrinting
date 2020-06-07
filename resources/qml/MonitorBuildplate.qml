@@ -7,9 +7,11 @@ import Cura 1.5 as Cura
 
 // TODO: parameterize along with extruder counterpart.
 Item {
-    property var bedTemperature: null
+    property var bedTemperature: null // int
     property var targetBedTemperature: null
-    property int max_bed_temperature : OutputDevice.max_bed_temperature
+    property int maxBedTemperature : OutputDevice.max_bed_temperature
+    property var bedTemperatures : OutputDevice.historical_bed_temperatures // Array[number]
+
     height: 40 * screenScaleFactor
     width: childrenRect.width
 
@@ -105,7 +107,7 @@ Item {
                 left: parent.left
             }
             visible: false
-            text: catalog.i18nc('@text', 'Temperature must be between 0ºC and ' + max_bed_temperature + 'ºC.')
+            text: catalog.i18nc('@text', 'Temperature must be between 0ºC and ' + maxBedTemperature + 'ºC.')
             font: UM.Theme.getFont('default')
             color: UM.Theme.getColor('error')
             renderType: Text.NativeRendering
@@ -131,5 +133,18 @@ Item {
                 }
             }
         }
+    }
+
+    TemperatureChart {
+        anchors {
+            right: parent.right
+            top: parent.top
+            rightMargin: 8 * screenScaleFactor
+        }
+        width: 135 * screenScaleFactor
+        height: 40 * screenScaleFactor
+        temperatures: bedTemperatures
+        targetTemperature: targetBedTemperature
+        maxTemperature: maxBedTemperature
     }
 }
