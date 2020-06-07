@@ -57,6 +57,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   printers."""
   MAX_TARGET_HOTEND_TEMPERATURE = 260  # celsius
   MAX_TARGET_BED_TEMPERATURE = 85  # celsius
+  NUM_DATA_POINTS = 30
 
   printerStatusChanged = pyqtSignal()
   onPrinterUpload = pyqtSignal(bool)
@@ -95,6 +96,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._requested_cancel_print = False
     self._requested_hotend_temperature = None  # int
     self._requested_bed_temperature = None  # int
+    self._historical_hotend_temps = [0 for i in range(self.NUM_DATA_POINTS)]
     self.setName(device_name)
 
     self._job_upload_message = PrintJobUploadProgressMessage(
@@ -117,6 +119,14 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   def printer(self) -> MPSM2PrinterOutputModel:
     """Produces main object for rendering the Printer Monitor tab."""
     return self._printer_output_model
+
+  @pyqtProperty(int, constant=True)
+  def num_chart_points(self) -> int:
+    return self.NUM_DATA_POINTS
+
+  @pyqtProperty(list, notify=printerStatusChanged)
+  def historical_hotend_temperatures(self) -> list:
+    return self._historical_hotend_temps
 
   @pyqtProperty(int, constant=True)
   def max_hotend_temperature(self) -> int:
@@ -622,6 +632,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     """
     self._printer_output_model.extruders[0].updateHotendTemperature(
         float(printer_status_model.hotend_temperature))
+    self._update_historical_temperature(printer_status_model.hotend_temperature)
     self._printer_output_model.extruders[0].updateTargetHotendTemperature(
         float(printer_status_model.target_hotend_temperature))
     self._printer_output_model.updateBedTemperature(
@@ -638,3 +649,11 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
         == printer_status_model.target_bed_temperature:
       self._requested_bed_temperature = None
       self.hasTargetBedInProgressChanged.emit()
+
+  def _update_historical_temperature(self, hotend_temperature: int):
+    """
+    Args:
+      hotend_temperature: current hotend temperature in Celsius.
+    """
+    self._historical_hotend_temps.append(hotend_temperature)
+    self._historical_hotend_temps.pop(0)
