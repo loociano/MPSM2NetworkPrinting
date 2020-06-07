@@ -7,29 +7,14 @@ import Cura 1.5 as Cura
 
 Item {
     id: extruder
+
     property var hotendTemperature : null // int
     property var targetHotendTemperature : null // int
     property int max_hotend_temperature : OutputDevice.max_hotend_temperature
-    property var historical_hotend_temperatures : OutputDevice.historical_hotend_temperatures // Array[int]
-    property int num_chart_points : OutputDevice.num_chart_points
+    property var hotendTemperatures : OutputDevice.historical_hotend_temperatures // Array[number]
+
     height: 40 * screenScaleFactor
     width: childrenRect.width
-
-    function generateLabels() {
-        console.info('generate labels');
-        var result = [];
-        for (var i = 0; i < extruder.num_chart_points; i++) {
-            result.push('');
-        }
-        return result;
-    }
-
-    function generateData() {
-        if (chart) {
-            chart.animateToNewData();
-        }
-        return extruder.historical_hotend_temperatures
-    }
 
     MonitorIconExtruder {
         id: extruderIcon
@@ -148,60 +133,13 @@ Item {
         }
     }
 
-    Chart {
-        id: chart
+    TemperatureChart {
         anchors {
             right: parent.right
             top: parent.top
         }
         width: 140 * screenScaleFactor
         height: 40 * screenScaleFactor
-        chartType: 'line'
-        chartData: {
-            return {
-                labels: extruder.generateLabels(),
-                datasets: [
-                    {
-                        fill: false,
-                        pointRadius: 0,
-                        borderColor: 'rgba(128,192,255,255)',
-                        borderWidth: 3,
-                        hoverBorderWidth: 0,
-                        hoverRadius: 0,
-                        hitRadius: 0,
-                        data: extruder.generateData(),
-                    }
-                ]
-            }
-        }
-        chartOptions: {
-            return {
-                animation: false,
-                maintainAspectRatio: false,
-                responsive: true,
-                legend: {
-                    display: false,
-                },
-                tooltips: {
-                    enabled: false,
-                },
-                scales: {
-                    xAxes: [{
-                        display: false,
-                        position: 'bottom',
-                    }],
-                    yAxes: [{
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        ticks: {
-                            max: 260,
-                            min: 0,
-                            maxTicksLimit: 2
-                        }
-                    }]
-                }
-            }
-        }
+        temperatures: hotendTemperatures
     }
 }

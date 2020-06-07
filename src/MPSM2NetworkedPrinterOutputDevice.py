@@ -120,10 +120,6 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     """Produces main object for rendering the Printer Monitor tab."""
     return self._printer_output_model
 
-  @pyqtProperty(int, constant=True)
-  def num_chart_points(self) -> int:
-    return self.NUM_DATA_POINTS
-
   @pyqtProperty(list, notify=printerStatusChanged)
   def historical_hotend_temperatures(self) -> list:
     return self._historical_hotend_temps
