@@ -141,5 +141,6 @@ Item {
         width: 140 * screenScaleFactor
         height: 40 * screenScaleFactor
         temperatures: hotendTemperatures
+        targetTemperature: targetHotendTemperature
     }
 }

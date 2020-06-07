@@ -7,11 +7,12 @@ Chart {
     id: root
 
     property var temperatures // Array[number]
+    property int targetTemperature
 
-    function generateLabels() {
+    function generateFlatData(value) {
         var result = [];
         for (var i = 0; i < temperatures.length; i++) {
-            result.push('');
+            result.push(value);
         }
         return result;
     }
@@ -26,19 +27,25 @@ Chart {
     chartType: 'line'
     chartData: {
         return {
-            labels: root.generateLabels(),
-            datasets: [
-                {
-                    fill: false,
-                    pointRadius: 0,
-                    borderColor: 'rgba(128,192,255,255)',
-                    borderWidth: 3,
-                    hoverBorderWidth: 0,
-                    hoverRadius: 0,
-                    hitRadius: 0,
-                    data: root.generateData(),
-                }
-            ]
+            labels: root.generateFlatData(''),
+            datasets: [{
+                fill: false,
+                pointRadius: 0,
+                borderColor: 'rgba(128,192,255,255)',
+                borderWidth: 2,
+                hoverBorderWidth: 0,
+                hoverRadius: 0,
+                hitRadius: 0,
+                data: root.generateData(),
+            },{
+                fill: false,
+                pointRadius: 0,
+                borderColor: 'rgba(4,100,185,255)',
+                borderWidth: 1,
+                borderDash: [100, 100],
+                hitRadius: 0,
+                data: root.generateFlatData(root.targetTemperature),
+            }]
         }
     }
     chartOptions: {

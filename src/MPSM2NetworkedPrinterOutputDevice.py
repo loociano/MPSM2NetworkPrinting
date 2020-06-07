@@ -96,7 +96,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._requested_cancel_print = False
     self._requested_hotend_temperature = None  # int
     self._requested_bed_temperature = None  # int
-    self._historical_hotend_temps = [0 for i in range(self.NUM_DATA_POINTS)]
+    self._historical_hotend_temps = []
     self.setName(device_name)
 
     self._job_upload_message = PrintJobUploadProgressMessage(
@@ -652,4 +652,5 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       hotend_temperature: current hotend temperature in Celsius.
     """
     self._historical_hotend_temps.append(hotend_temperature)
-    self._historical_hotend_temps.pop(0)
+    if len(self._historical_hotend_temps) > self.NUM_DATA_POINTS:
+      self._historical_hotend_temps.pop(0)
