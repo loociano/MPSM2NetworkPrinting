@@ -4,8 +4,6 @@ import QtQuick 2.3
 import "../js/Chart.js" as Chart
 
 Chart {
-    id: root
-
     property var temperatures // Array[number]
     property int targetTemperature
     property int maxTemperature
@@ -19,16 +17,14 @@ Chart {
     }
 
     function generateData() {
-        if (root) {
-            root.animateToNewData();
-        }
-        return root.temperatures
+        animateToNewData();
+        return temperatures
     }
 
     chartType: 'line'
     chartData: {
         return {
-            labels: root.generateFlatData(''),
+            labels: generateFlatData(''),
             datasets: [{
                 fill: false,
                 pointRadius: 0,
@@ -37,7 +33,7 @@ Chart {
                 hoverBorderWidth: 0,
                 hoverRadius: 0,
                 hitRadius: 0,
-                data: root.generateData(),
+                data: generateData(),
             },{
                 fill: false,
                 pointRadius: 0,
@@ -45,7 +41,7 @@ Chart {
                 borderWidth: 1,
                 borderDash: [100, 100],
                 hitRadius: 0,
-                data: root.generateFlatData(root.targetTemperature),
+                data: generateFlatData(targetTemperature),
             }]
         }
     }
@@ -70,7 +66,7 @@ Chart {
                     display: true,
                     position: 'right',
                     ticks: {
-                        max: root.maxTemperature,
+                        max: maxTemperature,
                         min: 0,
                         maxTicksLimit: 2
                     }
