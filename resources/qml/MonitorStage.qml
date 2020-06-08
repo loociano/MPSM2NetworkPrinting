@@ -85,7 +85,7 @@ Component
                             MouseArea {
                                 anchors.fill: parent
                                 hoverEnabled: true
-                                onClicked: Qt.openUrlExternally('http://loociano.com/mpsm2-cura-plugin')
+                                onClicked: Qt.openUrlExternally('https://github.com/loociano/MPSM2NetworkPrinting/issues')
                                 onEntered: linkLabel.font.underline = true
                                 onExited: linkLabel.font.underline = false
                             }
