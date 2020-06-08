@@ -11,9 +11,11 @@ _This software is unofficial and not affiliated with Monoprice. Use at your own 
 
 ## Requirements
 
-* Setup Wi-Fi on the printer [following this method](https://www.mpselectmini.com/wifi/g-code_file). Once completed, the
-printer's IP address should appear on the LCD screen. Example: `192.168.0.136`.
-* Install [Cura 4.4.0](https://ultimaker.com/software/ultimaker-cura) or later.
+1. Setup Wi-Fi on the printer, by [following one of these methods](https://www.mpselectmini.com/wifi/start). 
+
+   Once completed, the printer's IP address should appear on the LCD screen. Example: `192.168.0.136`.
+
+1. Install [Cura 4.4.0](https://ultimaker.com/software/ultimaker-cura) or later.
 
 ## How to install
 
@@ -84,4 +86,4 @@ See [LICENSE](https://github.com/loociano/MPSM2NetworkPrinting/blob/master/LICEN
 
 If this plugin was useful to you, please consider making a donation.
 
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHZG8HGU4GM8G)
+[![paypal](https://github.com/loociano/MPSM2NetworkPrinting/blob/master/resources/svg/paypal.svg?raw=true)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHZG8HGU4GM8G)
