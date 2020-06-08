@@ -2,7 +2,8 @@
 
 ![](https://travis-ci.org/loociano/MPSM2NetworkPrinting.svg?branch=master)
 
-This plugin for [Cura](https://github.com/ultimaker/cura) enables network interoperability with Monoprice Select Mini V2 printers.
+This [**plugin**](https://marketplace.ultimaker.com/app/cura/plugins/loociano/MPSM2NetworkPrinting) for 
+[Cura](https://github.com/ultimaker/cura) enables network interoperability with Monoprice Select Mini V2 printers.
 
 Plugin is compatible with Monoprice Select Mini V1 and Delta printers, with limited support ⁠—I do not own these.
 
@@ -10,7 +11,9 @@ _This software is unofficial and not affiliated with Monoprice. Use at your own 
 
 ## Requirements
 
-* [Cura 4.6.0](https://ultimaker.com/software/ultimaker-cura) or later.
+* Setup Wi-Fi on the printer [following this method](https://www.mpselectmini.com/wifi/g-code_file). Once completed, the
+printer's IP address should appear on the LCD screen. Example: `192.168.0.136`.
+* Install [Cura 4.4.0](https://ultimaker.com/software/ultimaker-cura) or later.
 
 ## How to install
 
@@ -20,11 +23,14 @@ _This software is unofficial and not affiliated with Monoprice. Use at your own 
 
   ![](https://github.com/loociano/MPSM2NetworkPrinting/blob/master/resources/png/cura-marketplace.png?raw=true)
 
-* Manually: download the latest [plugin release](https://github.com/loociano/MPSM2NetworkPrinting/releases) and drag and drop the `.curapackage` file into Cura. Restart Cura.
+* Manually: download the latest [plugin release](https://github.com/loociano/MPSM2NetworkPrinting/releases) and drag and
+drop the `.curapackage` file into Cura. Restart Cura.
 
 ## How to use
 
-1. **Important**: due to [a bug](https://github.com/Ultimaker/Cura/issues/7739) in Cura 4.6.1 or earlier, you need to temporarily disable the **UM3 Network Printing** plugin to add the printer over the network. Go to Marketplace → Installed and disable **UM3 Network Printing** plugin. Restart Cura to apply changes.
+1. **Important**: due to [a bug](https://github.com/Ultimaker/Cura/issues/7739) in Cura 4.6.1 or earlier, you need to
+temporarily disable the **UM3 Network Printing** plugin to add the printer over the network. Go to Marketplace → 
+Installed and disable **UM3 Network Printing** plugin. Restart Cura to apply changes.
 
    ![](https://github.com/loociano/MPSM2NetworkPrinting/blob/master/resources/png/um3-network-printing-disabled.png?raw=true)
 
@@ -58,7 +64,13 @@ _This software is unofficial and not affiliated with Monoprice. Use at your own 
 
 ## Development
 
-(Optional) clone [monoprice-select-mini-v2-api-mock](https://github.com/loociano/monoprice-select-mini-v2-api-mock) to simulate a Monoprice Select Mini V2 printer running locally.
+* Clone or download this [repository](https://github.com/loociano/MPSM2NetworkPrinting) into Cura's user plugins 
+directory.
+
+   _On MS Windows, it is located on `C:\Users\<user>\AppData\Roaming\cura\<cura_version>\plugins`_
+
+* (Optional) Clone or download [monoprice-select-mini-v2-api-mock](https://github.com/loociano/monoprice-select-mini-v2-api-mock) 
+to simulate a Monoprice Select Mini V2 printer running locally.
 
 ## Author
 
