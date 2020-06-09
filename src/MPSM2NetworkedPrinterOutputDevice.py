@@ -90,7 +90,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
         connection_type=ConnectionType.NetworkConnection,
         parent=parent)
     self._printer_output_controller = MPSM2OutputController(self)
-    self._is_busy = False
+    self._is_uploading = False
     self._requested_start_print = False
     self._requested_pause_print = False
     self._requested_cancel_print = False
@@ -152,7 +152,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     Returns:
        true if user is uploading a model to the printer.
     """
-    return self._is_busy
+    return self._is_uploading
 
   @pyqtProperty(bool, notify=startPrintRequestChanged)
   def has_start_print_request_in_progress(self) -> bool:
@@ -353,12 +353,12 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._on_printer_status_changed(response)
     self.printerStatusChanged.emit()
 
-  def is_busy(self) -> bool:
+  def is_uploading(self) -> bool:
     """
     Returns:
       true if the printer is uploading a job.
     """
-    return self._is_busy
+    return self._is_uploading
 
   def _on_print_job_created(self, job: GCodeWriteFileJob) -> None:
     """Called when a print job starts to upload.
@@ -370,7 +370,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       Logger.log('e', 'No active exported job to upload!')
       return
     self.onPrinterUpload.emit(True)
-    self._is_busy = True
+    self._is_uploading = True
     self._job_upload_message.show()
     self._api_client.upload_print(job.getFileName(), job.get_gcode_output(),
                                   self._on_print_job_upload_completed,
@@ -379,7 +379,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
 
   def _on_print_upload_cancelled(self) -> None:
     """Called when the user cancels the print upload."""
-    self._is_busy = False
+    self._is_uploading = False
     self._job_upload_message.hide()
     self._api_client.cancel_upload_print()
     self._api_client.cancel_print()  # force cancel
@@ -389,8 +389,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
 
   def _on_print_job_upload_error(self) -> None:
     """Called if there was an error uploading the model."""
-    if self._is_busy:
-      self._is_busy = False
+    if self._is_uploading:
+      self._is_uploading = False
       self._job_upload_message.hide()
       self._api_client.cancel_upload_print()
       self._api_client.cancel_print()  # force cancel
@@ -405,7 +405,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       response: HTTP body response from upload request.
     """
     if response.upper() == 'OK':
-      self._is_busy = False
+      self._is_uploading = False
       self._job_upload_message.hide()
       PrintJobUploadSuccessMessage().show()
       self._api_client.start_print()  # force start

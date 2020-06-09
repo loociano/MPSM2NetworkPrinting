@@ -307,7 +307,7 @@ class DeviceManager(QObject):
         MPSM2NetworkedPrinterOutputDevice,
         self._discovered_devices.get(DeviceManager._get_device_id(address)))
     if response == 'timeout':
-      if device and device.isConnected() and not device.is_busy() and \
+      if device and device.isConnected() and not device.is_uploading() and \
           not self._add_manual_device_in_progress:
         # Request timeout is expected during job upload.
         Logger.log('d', 'Discovered device timed out. Stopping device.')
