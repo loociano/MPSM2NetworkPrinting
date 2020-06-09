@@ -68,7 +68,11 @@ Chart {
                     ticks: {
                         max: maxTemperature,
                         min: 0,
-                        maxTicksLimit: 2
+                        maxTicksLimit: 2,
+                        fontSize: 10,
+                        callback: function(value, index, values) {
+                            return value + 'ºC';
+                        },
                     }
                 }]
             }
