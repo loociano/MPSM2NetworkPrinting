@@ -11,7 +11,6 @@ from UM.FileHandler.FileHandler import FileHandler
 from UM.Logger import Logger
 from UM.Scene.SceneNode import SceneNode
 from UM.i18n import i18nCatalog
-
 # pylint:disable=import-error
 from cura.CuraApplication import CuraApplication
 from cura.PrinterOutput.Models.ExtruderConfigurationModel import \
@@ -22,7 +21,6 @@ from cura.PrinterOutput.NetworkedPrinterOutputDevice \
   import NetworkedPrinterOutputDevice, AuthState
 from cura.PrinterOutput.PrinterOutputDevice \
   import ConnectionType, ConnectionState
-
 # pylint:disable=relative-beyond-top-level
 from .GCodeWriteFileJob import GCodeWriteFileJob
 from .MPSM2OutputController import MPSM2OutputController
@@ -41,11 +39,13 @@ from .messages.PrintJobUploadProgressMessage \
   import PrintJobUploadProgressMessage
 from .messages.PrintJobUploadSuccessMessage \
   import PrintJobUploadSuccessMessage
-from .messages.SetTargetTemperatureErrorMessage import SetTargetTemperatureErrorMessage
+from .messages.SetTargetTemperatureErrorMessage import \
+  SetTargetTemperatureErrorMessage
 from .models.MPSM2PrintJobOutputModel import MPSM2PrintJobOutputModel
 from .models.MPSM2PrinterOutputModel import MPSM2PrinterOutputModel
 from .models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
 from .network.ApiClient import ApiClient
+from .parsers.GcodePreheatSettingsParser import GcodePreheatSettingsParser
 from .parsers.MPSM2PrinterStatusParser \
   import MPSM2PrinterStatusParser
 
@@ -99,6 +99,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._historical_hotend_temps = []  # List[int]
     self._historical_bed_temps = []  # List[int]
     self.setName(device_name)
+    self._preheat_bed_temperature = None
+    self._preheat_hotend_temperature = None
 
     self._job_upload_message = PrintJobUploadProgressMessage(
         self._on_print_upload_cancelled)
@@ -372,7 +374,10 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self.onPrinterUpload.emit(True)
     self._is_uploading = True
     self._job_upload_message.show()
-    self._api_client.upload_print(job.getFileName(), job.get_gcode_output(),
+    gcode = job.get_gcode_output()
+    self._preheat_bed_temperature, self._preheat_hotend_temperature = \
+      GcodePreheatSettingsParser.parse(gcode)
+    self._api_client.upload_print(job.getFileName(), gcode,
                                   self._on_print_job_upload_completed,
                                   self._on_print_job_upload_progress,
                                   self._on_print_job_upload_error)
@@ -408,7 +413,19 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       self._is_uploading = False
       self._job_upload_message.hide()
       PrintJobUploadSuccessMessage().show()
-      self._api_client.start_print()  # force start
+      if self._preheat_bed_temperature is not None:
+        # Force bed preheating
+        self._api_client.set_target_bed_temperature(
+            self._preheat_bed_temperature,
+            self._on_target_bed_temperature_finished,
+            self._on_target_bed_temperature_error)
+      if self._preheat_hotend_temperature is not None:
+        # Force hotend preheating
+        self._api_client.set_target_hotend_temperature(
+            self._preheat_hotend_temperature,
+            self._on_target_hotend_temperature_finished,
+            self._on_target_hotend_temperature_error)
+        self._api_client.start_print()  # force start
       self.writeFinished.emit()
       self.onPrinterUpload.emit(False)
     else:

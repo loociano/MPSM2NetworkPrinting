@@ -11,7 +11,7 @@ class GcodePreheatSettingsParser:
 
   @staticmethod
   def parse(gcode: bytes) -> Tuple[int, int]:
-    """Parses preheating temperatures from gcode.
+    """Parses preheating bed and hotend temperature from gcode.
 
     Args:
       gcode: UTF-8 byte stream
