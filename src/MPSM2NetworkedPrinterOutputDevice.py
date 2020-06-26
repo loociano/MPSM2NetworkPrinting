@@ -46,7 +46,7 @@ from .models.MPSM2PrintJobOutputModel import MPSM2PrintJobOutputModel
 from .models.MPSM2PrinterOutputModel import MPSM2PrinterOutputModel
 from .models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
 from .network.ApiClient import ApiClient
-from .parser.MPSM2PrinterStatusParser \
+from .parsers.MPSM2PrinterStatusParser \
   import MPSM2PrinterStatusParser
 
 I18N_CATALOG = i18nCatalog('cura')
