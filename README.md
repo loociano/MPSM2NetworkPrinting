@@ -30,7 +30,7 @@ drop the `.curapackage` file into Cura. Restart Cura.
 
 ## How to use
 
-1. **Important**: due to [a bug](https://github.com/Ultimaker/Cura/issues/7739) in Cura 4.6.1 or earlier, you need to
+1. **Update to Cura 4.7 or later**. In earlier versions, you need to
 temporarily disable the **UM3 Network Printing** plugin to add the printer over the network. Go to Marketplace → 
 Installed and disable **UM3 Network Printing** plugin. Restart Cura to apply changes.
 
