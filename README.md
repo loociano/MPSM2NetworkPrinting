@@ -18,13 +18,10 @@ risk._
 
 If this plugin was useful to you, please consider making a donation.
 
-* If you have a PayPal account, please
-  use [paypal.me/loociano](https://paypal.me/loociano).
-* If you have a Revolut account, please
-  use [revolut.me/loociano](https://revolut.me/loociano)
-* Otherwise, follow this link:
+[![paypal](https://github.com/loociano/MPSM2NetworkPrinting/blob/master/resources/png/paypal.png?raw=true)](https://paypal.me/loociano)
+[![revolut](https://github.com/loociano/MPSM2NetworkPrinting/blob/master/resources/png/revolut.png?raw=true)](https://revolut.me/loociano)
 
-  [![paypal](https://github.com/loociano/MPSM2NetworkPrinting/blob/master/resources/svg/paypal.svg?raw=true)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHZG8HGU4GM8G)
+[Or donate with credit card](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHZG8HGU4GM8G)
 
 ## Requirements
 
