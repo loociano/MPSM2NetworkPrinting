@@ -296,10 +296,9 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     Logger.log('d', 'Closing.')
     super().close()
     self.setConnectionState(ConnectionState.Closed)
-    if self.key in CuraApplication.getInstance().getOutputDeviceManager() \
-        .getOutputDeviceIds():
-      CuraApplication.getInstance().getOutputDeviceManager().removeOutputDevice(
-          self.key)
+    device_manager = CuraApplication.getInstance().getOutputDeviceManager()
+    if self.key in device_manager.getOutputDeviceIds():
+      device_manager.removeOutputDevice(self.key)
 
   # Override
   # pylint:disable=invalid-name
@@ -326,7 +325,6 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     if self._printer_output_model.get_printer_state() == 'printing':
       PrintJobUploadIsPrintingMessage().show()
       return
-
     self.writeStarted.emit(self)
     job = GCodeWriteFileJob(file_handler=file_handler, nodes=nodes)
     job.finished.connect(self._on_print_job_created)
@@ -543,8 +541,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     if not plugin_path:
       Logger.log('e', 'Could not get plugin path.')
       return
-    self._monitor_view_qml_path = os.path.join(plugin_path, 'resources', 'qml',
-                                               'MonitorStage.qml')
+    self._monitor_view_qml_path = os.path.join(
+        plugin_path, 'resources', 'qml', 'MonitorStage.qml')
 
   @staticmethod
   def _build_printer_conf_model() -> PrinterConfigurationModel:

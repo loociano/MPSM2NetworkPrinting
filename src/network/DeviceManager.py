@@ -37,9 +37,8 @@ class DeviceManager(QObject):
     super().__init__()
     self._discovered_devices = {}
     self._background_threads = {}
-    self._output_device_manager = CuraApplication.getInstance() \
-      .getOutputDeviceManager()
-
+    self._output_device_manager = (
+        CuraApplication.getInstance().getOutputDeviceManager())
     ContainerRegistry.getInstance().containerRemoved.connect(
         self._on_printer_container_removed)
     self._add_manual_device_in_progress = False
@@ -174,8 +173,8 @@ class DeviceManager(QObject):
         DeviceManager._get_device_id(address), address)
     device.onPrinterUpload.connect(self.onPrinterUpload)
     device.update_printer_status(response)
-    discovered_printers_model = \
-      CuraApplication.getInstance().getDiscoveredPrintersModel()
+    discovered_printers_model = (
+      CuraApplication.getInstance().getDiscoveredPrintersModel())
     discovered_printers_model.addDiscoveredPrinter(
         ip_address=address,
         key=device.getId(),
@@ -201,8 +200,8 @@ class DeviceManager(QObject):
     if not device:
       return
     device.close()
-    CuraApplication.getInstance().getDiscoveredPrintersModel() \
-      .removeDiscoveredPrinter(device.address)
+    (CuraApplication.getInstance()
+     .getDiscoveredPrintersModel().removeDiscoveredPrinter(device.address))
     self.discoveredDevicesChanged.emit()
 
   def _create_machine(self, device_id: str) -> None:
@@ -290,9 +289,8 @@ class DeviceManager(QObject):
     machine.addConfiguredConnectionType(device.connectionType.value)
     if not device.isConnected():
       device.connect()
-
-    output_device_manager = \
-      CuraApplication.getInstance().getOutputDeviceManager()
+    output_device_manager = (
+        CuraApplication.getInstance().getOutputDeviceManager())
     if device.key not in output_device_manager.getOutputDeviceIds():
       output_device_manager.addOutputDevice(device)
 

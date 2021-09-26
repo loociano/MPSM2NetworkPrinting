@@ -26,10 +26,10 @@ class MPSM2OutputDevicePlugin(OutputDevicePlugin):
   def __init__(self) -> None:
     super().__init__()
     self._device_manager = DeviceManager()
-    self._device_manager.discoveredDevicesChanged \
-      .connect(self.discoveredDevicesChanged)
-    CuraApplication.getInstance().globalContainerStackChanged \
-      .connect(self.refreshConnections)
+    (self._device_manager.discoveredDevicesChanged
+     .connect(self.discoveredDevicesChanged))
+    (CuraApplication.getInstance().globalContainerStackChanged
+     .connect(self.refreshConnections))
 
   # Overrides
   def start(self) -> None:
