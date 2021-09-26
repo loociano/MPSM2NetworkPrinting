@@ -192,10 +192,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     """
     if not input_temperature.isdigit():
       return False
-    if int(input_temperature) < 0 \
-        or int(input_temperature) > self.MAX_TARGET_HOTEND_TEMPERATURE:
-      return False
-    return True
+    return 0 <= int(input_temperature) <= self.MAX_TARGET_HOTEND_TEMPERATURE
 
   @pyqtSlot(str, name='isValidBedTemperature', result=bool)
   def is_valid_bed_temperature(self, input_temperature: str) -> bool:
@@ -207,10 +204,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     """
     if not input_temperature.isdigit():
       return False
-    if int(input_temperature) < 0 \
-        or int(input_temperature) > self.MAX_TARGET_BED_TEMPERATURE:
-      return False
-    return True
+    return 0 <= int(input_temperature) <= self.MAX_TARGET_BED_TEMPERATURE
 
   @pyqtSlot(str, name='setTargetHotendTemperature')
   def set_target_hotend_temperature(self, celsius: str) -> None:
