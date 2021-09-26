@@ -74,7 +74,7 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
       self._calculate_remaining_print_time()
     self._progress = progress
 
-  def _reset(self):
+  def _reset(self) -> None:
     """Resets variables to calculate estimated print time left."""
     self._remaining_print_time_millis = _MAX_REMAINING_TIME_MILLIS
     self._elapsed_print_time_millis = 0
@@ -102,6 +102,6 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
     self._remaining_print_time_millis = new_remaining_time
     self._elapsed_percentage_points += 1
 
-  def _tick(self):
+  def _tick(self) -> None:
     """Updates stopwatch."""
     self._elapsed_print_time_millis += _POLL_INTERVAL_MILLIS
