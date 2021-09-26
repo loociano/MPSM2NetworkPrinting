@@ -581,9 +581,10 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
         self.cancelPrintRequestChanged.emit()
     elif printer_status_model.state == MPSM2PrinterStatusModel.State.PRINTING:
       self._printer_output_model.updateState('printing')
+      # It should be anything but inactive states:
+      # 'pausing', 'paused', 'resuming', 'wait_cleanup'.
       self._print_job_model.updateState('active')
-      self._print_job_model.update_progress(
-          float(printer_status_model.progress))
+      self._print_job_model.update_progress(printer_status_model.progress)
       if self._requested_start_print:
         self._requested_start_print = False  # Fulfilled.
         self.startPrintRequestChanged.emit()
