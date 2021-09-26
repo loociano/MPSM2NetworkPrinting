@@ -400,7 +400,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
             self._preheat_hotend_temperature,
             self._on_target_hotend_temperature_finished,
             self._on_target_hotend_temperature_error)
-        self._api_client.start_print()  # force start
+        # Force start. Sometimes the printer does not start automatically.
+        self._api_client.start_print()
       self.writeFinished.emit()
       self.onPrinterUpload.emit(False)
     else:
@@ -582,32 +583,26 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       printer_status_model: parsed model from printer's status response.
     """
     self._update_model_temperatures(printer_status_model)
-
     if printer_status_model.state == MPSM2PrinterStatusModel.State.IDLE:
       self._printer_output_model.updateState('idle')
       self._print_job_model.updateState('not_started')
       self._print_job_model.update_progress(0)
-
       if self._requested_cancel_print:
-        self._requested_cancel_print = False  # Fulfilled
+        self._requested_cancel_print = False  # Fulfilled.
         self.cancelPrintRequestChanged.emit()
-
     elif printer_status_model.state == MPSM2PrinterStatusModel.State.PRINTING:
       self._printer_output_model.updateState('printing')
       self._print_job_model.updateState('active')
       self._print_job_model.update_progress(
           float(printer_status_model.progress))
-
       if self._requested_start_print:
         self._requested_start_print = False  # Fulfilled.
         self.startPrintRequestChanged.emit()
-
       # Printer does not acknowledge that the printing is paused.
       # PRINTING state includes paused.
       if self._requested_pause_print:
         self._requested_pause_print = False  # Fulfilled.
         self.pausePrintRequestChanged.emit()
-
     else:
       Logger.log('e', 'Unknown printer status.')
       NetworkErrorMessage().show()
