@@ -121,8 +121,7 @@ class ApiClient:
     """
     http_part = QHttpPart()
     http_part.setHeader(QNetworkRequest.ContentDispositionHeader,
-                        'form-data; name="file"; filename="{}"'.format(
-                            filename))
+                        f'form-data; name="file"; filename="{filename}"')
     http_part.setHeader(QNetworkRequest.ContentTypeHeader,
                         'application/octet-stream')
     http_part.setBody(payload)
@@ -132,9 +131,9 @@ class ApiClient:
 
     request = self._create_empty_request('/upload')
     # Must encode bytes boundary into string!
+    bytes_boundary = str(http_multi_part.boundary(), 'utf-8')
     request.setHeader(QNetworkRequest.ContentTypeHeader,
-                      'multipart/form-data; boundary=%s' % str(
-                          http_multi_part.boundary(), 'utf-8'))
+                      f'multipart/form-data; boundary={bytes_boundary}')
 
     reply = self._network_manager.post(request, http_multi_part)
     # Upload is special: on_error is connected directly on reply.error
@@ -143,7 +142,7 @@ class ApiClient:
     reply.error.connect(on_error)
     # Prevent HTTP multi-part to be garbage-collected.
     http_multi_part.setParent(reply)
-    self._upload_model_reply = reply  # cache to cancel
+    self._upload_model_reply = reply  # Cache to cancel.
 
   def cancel_upload_print(self) -> None:
     """Cancels the upload request."""
@@ -196,7 +195,7 @@ class ApiClient:
     Args:
       path: HTTP relative path.
     """
-    url = QUrl('http://' + self._ip_address + path)
+    url = QUrl(f'http://{self._ip_address}{path}')
     Logger.log('d', url.toString())
     request = QNetworkRequest(url)
     request.setAttribute(QNetworkRequest.FollowRedirectsAttribute, True)
