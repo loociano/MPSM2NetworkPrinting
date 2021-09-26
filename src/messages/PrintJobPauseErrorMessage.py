@@ -16,5 +16,6 @@ class PrintJobPauseErrorMessage(Message):
         title=I18N_CATALOG.i18nc('@info:title', 'Network error'),
         text=I18N_CATALOG.i18nc(
             '@info:text',
-            'Could not pause the print. Please make sure the printer is online and try again.'),
+            'Could not pause the print. '
+            'Please make sure the printer is online and try again.'),
         lifetime=10)

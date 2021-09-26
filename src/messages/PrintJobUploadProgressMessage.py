@@ -26,7 +26,7 @@ class PrintJobUploadProgressMessage(Message):
     """Constructor.
 
     Args:
-      on_cancelled: called when user cancels printer upload.
+      on_cancelled: Called when user cancels printer upload.
     """
     super().__init__(
         title=I18N_CATALOG.i18nc('@info:status', 'Uploading model to printer'),
@@ -46,17 +46,15 @@ class PrintJobUploadProgressMessage(Message):
     self._stopwatch.timeout.connect(self._tick)
     self._reset_calculation_time()
 
-  # Override
   def show(self) -> None:
-    """Shows the message."""
+    """See base class."""
     self.setProgress(0)
     super().show()
     self._stopwatch.start(self.POLL_TIME_MILLIS)
     self._reset_calculation_time()
 
-  # Override
   def hide(self, send_signal=True) -> None:
-    """Hides the message"""
+    """See base class."""
     super().hide()
     self._stopwatch.stop()
     self._reset_calculation_time()
@@ -65,8 +63,8 @@ class PrintJobUploadProgressMessage(Message):
     """Updates the progress bar.
 
     Args:
-      bytes_sent: number of bytes sent
-      bytes_total: target bytes
+      bytes_sent: Number of bytes sent.
+      bytes_total: Target bytes.
     """
     percentage = (bytes_sent / bytes_total) if bytes_total else 0
     self.setProgress(percentage * 100)
@@ -80,7 +78,7 @@ class PrintJobUploadProgressMessage(Message):
             TimeUtils.get_human_readable_countdown(
                 seconds=int(remaining_millis / 1000)))
 
-  def _reset_calculation_time(self):
+  def _reset_calculation_time(self) -> None:
     """Resets the estimated calculation time."""
     self._elapsed_upload_time_millis = 0
     self._remaining_time_millis = self.MAX_REMAINING_MILLIS
@@ -90,12 +88,12 @@ class PrintJobUploadProgressMessage(Message):
     """Called when an action from user was triggered.
 
     Args:
-      message: message (ignored)
-      action: action triggered
+      message: Message (ignored).
+      action: Action triggered.
     """
     if action == 'cancel':
       self._on_cancelled()
 
-  def _tick(self):
+  def _tick(self) -> None:
     """Updates stopwatch."""
     self._elapsed_upload_time_millis += self.POLL_TIME_MILLIS

@@ -13,7 +13,8 @@ class PrintJobUploadSuccessMessage(Message):
 
   def __init__(self) -> None:
     super().__init__(
-        title=I18N_CATALOG.i18nc("@info:title", 'Data Sent'),
-        text=I18N_CATALOG.i18nc("@info:status",
-                                'Print job was successfully sent. Starting print.'),
+        title=I18N_CATALOG.i18nc('@info:title', 'Data Sent'),
+        text=I18N_CATALOG.i18nc(
+            '@info:status',
+            'Print job was successfully sent. Starting print.'),
         lifetime=5)
