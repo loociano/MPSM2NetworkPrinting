@@ -106,9 +106,8 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
       Remaining print time in seconds.
     """
     return int((100 - self._progress)
-        * self._elapsed_print_time_millis
-        / self._elapsed_percentage_points / 1000)
-
+               * self._elapsed_print_time_millis
+               / self._elapsed_percentage_points / 1000)
 
   def _tick(self) -> None:
     """Updates stopwatch."""

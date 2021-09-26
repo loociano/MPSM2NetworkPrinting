@@ -225,7 +225,7 @@ class DeviceManager(QObject):
     device_id = container.getMetaDataEntry(_METADATA_MPSM2_KEY)
     self.remove_device(device_id, _get_address(device_id))
 
-  def _on_printer_status_error(self):
+  def _on_printer_status_error(self) -> None:
     """Called when the printer status has error."""
     self._add_manual_device_in_progress = False
 
