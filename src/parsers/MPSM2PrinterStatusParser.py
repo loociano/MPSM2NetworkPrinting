@@ -5,8 +5,13 @@ Plugin is licensed under the GNU Lesser General Public License v3.0.
 import re
 from typing import Optional
 
+from UM.Logger import Logger
+
 # pylint:disable=relative-beyond-top-level
 from ..models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
+
+
+_RESPONSE_STATUS_REGEX = r"^T(\d+)/(\d+)P(\d+)/(\d+)/(\d+)([IP])$"
 
 
 class MPSM2PrinterStatusParser:
@@ -21,8 +26,9 @@ class MPSM2PrinterStatusParser:
     Returns:
       Model with printer state, temperatures and print progress.
     """
-    matches = re.match(r"^T(\d+)/(\d+)P(\d+)/(\d+)/(\d+)([IP])$", raw_response)
-    if matches is None:
+    matches = re.match(_RESPONSE_STATUS_REGEX, raw_response)
+    if not matches:
+      Logger.log('e', 'Could not parse response: %s.', raw_response)
       return None
     state = matches.group(6)
     return MPSM2PrinterStatusModel(
