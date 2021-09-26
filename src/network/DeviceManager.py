@@ -18,8 +18,7 @@ from cura.Settings.GlobalStack import GlobalStack
 # pylint:disable=relative-beyond-top-level
 from .ApiClient import ApiClient
 from .PrinterHeartbeat import PrinterHeartbeat
-from ..MPSM2NetworkedPrinterOutputDevice \
-  import MPSM2NetworkedPrinterOutputDevice
+from ..MPSM2NetworkedPrinterOutputDevice import MPSM2NetworkedPrinterOutputDevice
 
 _METADATA_MPSM2_KEY = 'mpsm2_network_key'
 _MANUAL_DEVICES_PREFERENCE_KEY = 'mpsm2networkprinting/manual_instances'
@@ -174,7 +173,7 @@ class DeviceManager(QObject):
     device.onPrinterUpload.connect(self.onPrinterUpload)
     device.update_printer_status(response)
     discovered_printers_model = (
-      CuraApplication.getInstance().getDiscoveredPrintersModel())
+        CuraApplication.getInstance().getDiscoveredPrintersModel())
     discovered_printers_model.addDiscoveredPrinter(
         ip_address=address,
         key=device.getId(),
@@ -305,8 +304,10 @@ class DeviceManager(QObject):
         MPSM2NetworkedPrinterOutputDevice,
         self._discovered_devices.get(DeviceManager._get_device_id(address)))
     if response == 'timeout':
-      if device and device.isConnected() and not device.is_uploading() and \
-          not self._add_manual_device_in_progress:
+      if (device
+          and device.isConnected()
+          and not device.is_uploading()
+          and not self._add_manual_device_in_progress):
         # Request timeout is expected during job upload.
         Logger.log('d', 'Discovered device timed out. Stopping device.')
         device.close()

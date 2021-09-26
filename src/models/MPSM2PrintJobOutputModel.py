@@ -96,9 +96,9 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
         self._stopwatch.start(_POLL_INTERVAL_MILLIS)
       return
 
-    new_remaining_time = (100 - self._progress) \
-                         * self._elapsed_print_time_millis \
-                         / self._elapsed_percentage_points
+    new_remaining_time = (
+        (100 - self._progress) * self._elapsed_print_time_millis
+        / self._elapsed_percentage_points)
     self._remaining_print_time_millis = new_remaining_time
     self._elapsed_percentage_points += 1
 

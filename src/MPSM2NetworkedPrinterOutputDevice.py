@@ -13,14 +13,10 @@ from UM.Scene.SceneNode import SceneNode
 from UM.i18n import i18nCatalog
 # pylint:disable=import-error
 from cura.CuraApplication import CuraApplication
-from cura.PrinterOutput.Models.ExtruderConfigurationModel import \
-  ExtruderConfigurationModel
-from cura.PrinterOutput.Models.PrinterConfigurationModel import \
-  PrinterConfigurationModel
-from cura.PrinterOutput.NetworkedPrinterOutputDevice \
-  import NetworkedPrinterOutputDevice, AuthState
-from cura.PrinterOutput.PrinterOutputDevice \
-  import ConnectionType, ConnectionState
+from cura.PrinterOutput.Models.ExtruderConfigurationModel import ExtruderConfigurationModel
+from cura.PrinterOutput.Models.PrinterConfigurationModel import PrinterConfigurationModel
+from cura.PrinterOutput.NetworkedPrinterOutputDevice import NetworkedPrinterOutputDevice, AuthState
+from cura.PrinterOutput.PrinterOutputDevice import ConnectionType, ConnectionState
 # pylint:disable=relative-beyond-top-level
 from .GCodeWriteFileJob import GCodeWriteFileJob
 from .MPSM2OutputController import MPSM2OutputController
@@ -28,26 +24,19 @@ from .messages.NetworkErrorMessage import NetworkErrorMessage
 from .messages.PrintJobCancelErrorMessage import PrintJobCancelErrorMessage
 from .messages.PrintJobPauseErrorMessage import PrintJobPauseErrorMessage
 from .messages.PrintJobStartErrorMessage import PrintJobStartErrorMessage
-from .messages.PrintJobUploadBlockedMessage \
-  import PrintJobUploadBlockedMessage
-from .messages.PrintJobUploadCancelMessage \
-  import PrintJobUploadCancelMessage
+from .messages.PrintJobUploadBlockedMessage import PrintJobUploadBlockedMessage
+from .messages.PrintJobUploadCancelMessage import PrintJobUploadCancelMessage
 from .messages.PrintJobUploadErrorMessage import PrintJobUploadErrorMessage
-from .messages.PrintJobUploadIsPrintingMessage \
-  import PrintJobUploadIsPrintingMessage
-from .messages.PrintJobUploadProgressMessage \
-  import PrintJobUploadProgressMessage
-from .messages.PrintJobUploadSuccessMessage \
-  import PrintJobUploadSuccessMessage
-from .messages.SetTargetTemperatureErrorMessage import \
-  SetTargetTemperatureErrorMessage
+from .messages.PrintJobUploadIsPrintingMessage import PrintJobUploadIsPrintingMessage
+from .messages.PrintJobUploadProgressMessage import PrintJobUploadProgressMessage
+from .messages.PrintJobUploadSuccessMessage import PrintJobUploadSuccessMessage
+from .messages.SetTargetTemperatureErrorMessage import SetTargetTemperatureErrorMessage
 from .models.MPSM2PrintJobOutputModel import MPSM2PrintJobOutputModel
 from .models.MPSM2PrinterOutputModel import MPSM2PrinterOutputModel
 from .models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
 from .network.ApiClient import ApiClient
 from .parsers.GcodePreheatSettingsParser import GcodePreheatSettingsParser
-from .parsers.MPSM2PrinterStatusParser \
-  import MPSM2PrinterStatusParser
+from .parsers.MPSM2PrinterStatusParser import MPSM2PrinterStatusParser
 
 I18N_CATALOG = i18nCatalog('cura')
 
@@ -107,8 +96,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
 
     self._print_job_model = MPSM2PrintJobOutputModel(
         self._printer_output_controller)
-    self._printer_output_model = \
-      self._build_printer_output_model()  # type: MPSM2PrinterOutputModel
+    self._printer_output_model = self._build_printer_output_model()
 
     self.setAuthenticationState(AuthState.Authenticated)
     self._load_monitor_tab()
@@ -350,8 +338,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._is_uploading = True
     self._job_upload_message.show()
     gcode = job.get_gcode_output()
-    self._preheat_bed_temperature, self._preheat_hotend_temperature = \
-      GcodePreheatSettingsParser.parse(gcode)
+    self._preheat_bed_temperature, self._preheat_hotend_temperature = (
+        GcodePreheatSettingsParser.parse(gcode))
     self._api_client.upload_print(job.getFileName(), gcode,
                                   self._on_print_job_upload_completed,
                                   self._on_print_job_upload_progress,
