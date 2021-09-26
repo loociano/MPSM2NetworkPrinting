@@ -9,8 +9,8 @@ from PyQt5.QtNetwork import QNetworkReply, QHttpPart, QNetworkRequest, QHttpMult
 
 from UM.Logger import Logger
 
-_MAX_TARGET_HOTEND_TEMPERATURE = 260
-_MAX_TARGET_BED_TEMPERATURE = 85
+from ..models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
+
 
 class ApiClient:
   """Monoprice Select Mini REST API client."""
@@ -153,39 +153,41 @@ class ApiClient:
       self._upload_model_reply = None
 
   def set_target_hotend_temperature(self,
-                                    celsius: int,
+                                    temperature: int,
                                     on_finished: Callable,
                                     on_error: Callable) -> None:
     """Tells the printer the target hotend temperature.
 
     Args:
-      celsius: Target hotend temperature
+      temperature: Target hotend temperature.
       on_finished: Callback after request completes.
       on_error: Callback if the request fails.
     """
-    if celsius < 0 or celsius > _MAX_TARGET_HOTEND_TEMPERATURE:
+    if (temperature < 0
+        or temperature > MPSM2PrinterStatusModel.MAX_HOTEND_TEMPERATURE):
       Logger.log('e', 'Target hotend temperature out of range.')
       return
     reply = self._network_manager.get(
-        self._create_empty_request('/set?cmd={{C:T{:04d}}}'.format(celsius)))
+        self._create_empty_request(f'/set?cmd={{C:T{temperature:04d}}}'))
     self._register_callback(reply, on_finished, on_error)
 
   def set_target_bed_temperature(self,
-                                 celsius: int,
+                                 temperature: int,
                                  on_finished: Callable,
                                  on_error: Callable) -> None:
     """Requests the printer to set a target bed temperature.
 
     Args:
-      celsius: Target bed temperature
+      temperature: Target bed temperature.
       on_finished: Callback after request completes.
       on_error: Callback if the request fails.
     """
-    if celsius < 0 or celsius > _MAX_TARGET_BED_TEMPERATURE:
+    if (temperature < 0
+        or temperature > MPSM2PrinterStatusModel.MAX_BED_TEMPERATURE):
       Logger.log('e', 'Target bed temperature out of range.')
       return
     reply = self._network_manager.get(
-        self._create_empty_request('/set?cmd={{C:P{:03d}}}'.format(celsius)))
+        self._create_empty_request(f'/set?cmd={{C:P{temperature:03d}}}'))
     self._register_callback(reply, on_finished, on_error)
 
   def _create_empty_request(self, path: str) -> QNetworkRequest:

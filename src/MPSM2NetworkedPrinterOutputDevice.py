@@ -206,9 +206,9 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     Logger.log('d', 'Setting target hotend temperature to %sºC.', celsius)
     try:
       self._api_client.set_target_hotend_temperature(
-          int(celsius),
-          self._on_target_hotend_temperature_finished,
-          self._on_target_hotend_temperature_error)
+          temperature=int(celsius),
+          on_finished=self._on_target_hotend_temperature_finished,
+          on_error=self._on_target_hotend_temperature_error)
       self._requested_hotend_temperature = int(celsius)
       self.hasTargetHotendInProgressChanged.emit()
     except ValueError:
@@ -224,9 +224,9 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     Logger.log('d', 'Setting target bed temperature to %sºC.', celsius)
     try:
       self._api_client.set_target_bed_temperature(
-          int(celsius),
-          self._on_target_bed_temperature_finished,
-          self._on_target_bed_temperature_error)
+          temperature=int(celsius),
+          on_finished=self._on_target_bed_temperature_finished,
+          on_error=self._on_target_bed_temperature_error)
       self._requested_bed_temperature = int(celsius)
       self.hasTargetBedInProgressChanged.emit()
     except ValueError:
@@ -381,15 +381,15 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       if self._preheat_bed_temperature is not None:
         # Force bed preheating
         self._api_client.set_target_bed_temperature(
-            self._preheat_bed_temperature,
-            self._on_target_bed_temperature_finished,
-            self._on_target_bed_temperature_error)
+            temperature=self._preheat_bed_temperature,
+            on_finished=self._on_target_bed_temperature_finished,
+            on_error=self._on_target_bed_temperature_error)
       if self._preheat_hotend_temperature is not None:
         # Force hotend preheating
         self._api_client.set_target_hotend_temperature(
-            self._preheat_hotend_temperature,
-            self._on_target_hotend_temperature_finished,
-            self._on_target_hotend_temperature_error)
+            temperature=self._preheat_hotend_temperature,
+            on_finished=self._on_target_hotend_temperature_finished,
+            on_error=self._on_target_hotend_temperature_error)
         # Force start. Sometimes the printer does not start automatically.
         self._api_client.start_print()
       self.writeFinished.emit()
