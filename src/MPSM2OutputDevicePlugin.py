@@ -31,33 +31,33 @@ class MPSM2OutputDevicePlugin(OutputDevicePlugin):
     (CuraApplication.getInstance().globalContainerStackChanged
      .connect(self.refreshConnections))
 
-  # Overrides
   def start(self) -> None:
+    """See base class."""
     self._device_manager.start()
 
-  # Overrides
   def stop(self) -> None:
+    """See base class."""
     self._device_manager.stop()
 
-  # Overrides
   def startDiscovery(self) -> None:
+    """See base class."""
     self._device_manager.start_discovery()
 
-  # Overrides
   def refreshConnections(self) -> None:
+    """See base class."""
     self._device_manager.connect_to_active_machine()
 
-  # Overrides
   def canAddManualDevice(self,
                          address: str = '') -> ManualDeviceAdditionAttempt:
+    """See base class."""
     return ManualDeviceAdditionAttempt.PRIORITY
 
-  # Overrides
   def addManualDevice(
       self, address: str,
       callback: Optional[Callable[[bool, str], None]] = None) -> None:
+    """See base class."""
     self._device_manager.add_device(address, callback)
 
-  # Overrides
   def removeManualDevice(self, key: str, address: Optional[str] = None) -> None:
+    """See base class."""
     self._device_manager.remove_device(key, address)

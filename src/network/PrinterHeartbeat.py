@@ -33,14 +33,15 @@ class PrinterHeartbeat(QThread):
   def stopBeat(self):
     self._is_running = False
 
-  # Override
   def run(self) -> None:
+    """See base class."""
     while self._is_running:
       if not self._is_uploading:
         self._inquiry()
       time.sleep(_POLL_INTERVAL_SECS)
 
   def _inquiry(self) -> None:
+    """Queries printer status."""
     connection = HTTPConnection(self._address, timeout=_REQUEST_TIMEOUT_SECS)
     try:
       connection.request('GET', '/inquiry')

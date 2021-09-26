@@ -291,16 +291,14 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._requested_cancel_print = True
     self.cancelPrintRequestChanged.emit()
 
-  # Override
   def connect(self) -> None:
-    """Connects to the printer."""
+    """See base class."""
     Logger.log('d', 'Connecting.')
     super().connect()
     self._update()
 
-  # Override
   def close(self) -> None:
-    """Closes the connection to the printer."""
+    """See base class."""
     Logger.log('d', 'Closing.')
     super().close()
     self.setConnectionState(ConnectionState.Closed)
@@ -308,7 +306,6 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     if self.key in device_manager.getOutputDeviceIds():
       device_manager.removeOutputDevice(self.key)
 
-  # Override
   # pylint:disable=invalid-name
   # pylint:disable=unused-argument
   def requestWrite(self, nodes: List[SceneNode],
@@ -317,7 +314,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
                    file_handler: Optional[FileHandler] = None,
                    filter_by_machine: bool = False, **kwargs) -> None:
     """Initiates the job upload to printer.
-    Called when user clicks on button 'Print over the network'.
+
+    See base class. Called when user clicks on button 'Print over the network'.
 
     Args:
       nodes: A collection of scene nodes that should be written to the device.

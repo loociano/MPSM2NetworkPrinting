@@ -39,12 +39,12 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
     self._stopwatch.timeout.connect(self._tick)
     self._reset()
 
-  # Override.
-  # Superclass computes progress based on elapsed time.
-  # MPSM2 printers do not provide elapsed time, but progress in percentage.
   @pyqtProperty(int)
   def progress(self) -> int:
     """UI label for printing progress.
+
+    Superclass computes progress based on elapsed time.
+    MPSM2 printers do not provide elapsed time, but progress in percentage.
 
     Returns:
       Print job progress from 0 to 100.
