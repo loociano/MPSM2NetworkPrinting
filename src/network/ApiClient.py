@@ -18,7 +18,7 @@ class ApiClient:
     """Constructor.
 
     Args:
-      ip_address: printer's IP address.
+      ip_address: Printer's IP address.
     """
     super().__init__()
     self._network_manager = QNetworkAccessManager()
@@ -27,12 +27,13 @@ class ApiClient:
 
   def get_printer_status(self, on_finished: Callable,
                          on_error: Callable) -> None:
-    """Gets printer status. Status contains temperatures, printer state and
-    progress if printing.
+    """Gets printer status.
+
+    Status contains temperatures, printer state and progress if printing.
 
     Args:
-      on_finished: callback after request completes.
-      on_error: callback if the request fails.
+      on_finished: Callback after request completes.
+      on_error: Callback if the request fails.
     """
     reply = self._network_manager.get(self._create_empty_request('/inquiry'))
     self._register_callback(reply, on_finished, on_error)
@@ -42,8 +43,8 @@ class ApiClient:
     """Tells the printer to increase the upload speed to 91 Kbps.
 
     Args:
-      on_finished: callback after request completes.
-      on_error: callback if the request fails.
+      on_finished: Callback after request completes.
+      on_error: Callback if the request fails.
     """
     # Default upload speed is 39 Kbps (level 2).
     # Monoprice Select Mini V2 supports 91 Kbps (level 4).
@@ -57,8 +58,8 @@ class ApiClient:
     """Tells the printer to start printing.
 
     Args:
-      on_finished: callback after request completes.
-      on_error: callback if the request fails.
+      on_finished: Callback after request completes.
+      on_error: Callback if the request fails.
     """
     reply = self._network_manager.get(
         self._create_empty_request('/set?cmd={P:M}'))
@@ -67,11 +68,12 @@ class ApiClient:
 
   def resume_print(self, on_finished: Callable, on_error=None) -> None:
     """Tells the printer to resume a paused print.
+
     If called when not paused, starts the print but the printer UI breaks.
 
     Args:
-      on_finished: callback after request completes.
-      on_error: callback if the request fails.
+      on_finished: Callback after request completes.
+      on_error: Callback if the request fails.
     """
     reply = self._network_manager.get(
         self._create_empty_request('/set?cmd={P:R}'))
@@ -79,11 +81,12 @@ class ApiClient:
 
   def pause_print(self, on_finished: Callable, on_error: Callable) -> None:
     """Tells the printer to pause the print.
+
     If called when not printing, starts the print, pauses but the UI breaks.
 
     Args:
-      on_finished: callback after request completes.
-      on_error: callback if the request fails.
+      on_finished: Callback after request completes.
+      on_error: Callback if the request fails.
     """
     reply = self._network_manager.get(
         self._create_empty_request('/set?cmd={P:P}'))
@@ -91,7 +94,8 @@ class ApiClient:
 
   def cancel_print(self, on_finished: Optional[Callable] = None,
                    on_error=None) -> None:
-    """# Tells the printer to cancel the print.
+    """Tells the printer to cancel the print.
+
     If called when not printing, it is a no-op.
 
     Args:
@@ -106,12 +110,13 @@ class ApiClient:
   def upload_print(self, filename: str, payload: bytes, on_finished: Callable,
                    on_progress: Callable, on_error: Callable) -> None:
     """Uploads a file to the printer with a POST multipart/form-data request.
+
     Args:
-      filename: name of the file to upload
-      payload: content in bytes
-      on_finished: callback after request completes.
-      on_progress: callback while file uploads.
-      on_error: callback if the request fails.
+      filename: Name of the file to upload
+      payload: Content in bytes
+      on_finished: Callback after request completes.
+      on_progress: Callback while file uploads.
+      on_error: Callback if the request fails.
     """
     http_part = QHttpPart()
     http_part.setHeader(QNetworkRequest.ContentDispositionHeader,
@@ -153,9 +158,9 @@ class ApiClient:
     """Tells the printer the target hotend temperature.
 
     Args:
-      celsius: target hotend temperature
-      on_finished: callback after request completes.
-      on_error: callback if the request fails.
+      celsius: Target hotend temperature
+      on_finished: Callback after request completes.
+      on_error: Callback if the request fails.
     """
     # TODO: extract constants.
     if celsius < 0 or celsius > 260:
@@ -172,9 +177,9 @@ class ApiClient:
     """Requests the printer to set a target bed temperature.
 
     Args:
-      celsius: target bed temperature
-      on_finished: callback after request completes.
-      on_error: callback if the request fails.
+      celsius: Target bed temperature
+      on_finished: Callback after request completes.
+      on_error: Callback if the request fails.
     """
     # TODO: extract constants.
     if celsius < 0 or celsius > 85:
@@ -202,8 +207,8 @@ class ApiClient:
 
     Args:
       reply: HTTP response.
-      on_finished: callback after request completes.
-      on_error: callback on network error or timeout.
+      on_finished: Callback after request completes.
+      on_error: Callback on network error or timeout.
     """
 
     def parse() -> None:

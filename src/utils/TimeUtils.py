@@ -12,7 +12,7 @@ class TimeUtils:
   def get_human_readable_countdown(seconds: int) -> str:
     """
     Args:
-      seconds: countdown in number of seconds.
+      seconds: Countdown in number of seconds.
 
     Returns:
       Human-readable count down.

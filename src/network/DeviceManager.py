@@ -60,8 +60,11 @@ class DeviceManager(QObject):
     self.start()
 
   def connect_to_active_machine(self) -> None:
-    """Connects to the active machine. If the active machine is not a networked
-    Monoprice Select Mini V2 printer, it removes them as Output Device."""
+    """Connects to the active machine.
+
+    If the active machine is not a networked Monoprice Select Mini V2 printer,
+    it removes them as Output Device.
+    """
     Logger.log('d', 'Connecting to active machine.')
     active_machine = CuraApplication.getInstance().getGlobalContainerStack()
     if not active_machine:
@@ -83,8 +86,8 @@ class DeviceManager(QObject):
     """Handles user-request to add a device by IP address.
 
     Args:
-      address: printer's IP address.
-      callback: called after requests completes.
+      address: Printer's IP address.
+      callback: Called after requests completes.
     """
     Logger.log('d', 'Requesting to add device with address: %s.', address)
     self._add_manual_device_in_progress = True
@@ -99,8 +102,8 @@ class DeviceManager(QObject):
     """Handles user-request to delete a device.
 
     Args:
-      device_id: device identifier 'manual:<ip_address>'.
-      address: printer's IP address.
+      device_id: Device identifier 'manual:<ip_address>'.
+      address: Printer's IP address.
     """
     Logger.log('d', 'Removing manual device with device_id: %s and address: %s',
                device_id, address)
@@ -136,8 +139,9 @@ class DeviceManager(QObject):
 
   def _on_printer_container_removed(self,
                                     container: ContainerInterface) -> None:
-    """Called when the user deletes a printer. Removes device if it is managed
-    by this plugin.
+    """Removes device if it is managed by this plugin.
+
+    Called when the user deletes a printer.
 
     Args:
       container: deleted container.
@@ -155,9 +159,9 @@ class DeviceManager(QObject):
     """Called when the printer status requests completes.
 
     Args:
-      response: response to the status request. Can be 'timeout'.
-      address: printer's IP address.
-      callback: called after this function finishes.
+      response: Response to the status request. Can be 'timeout'.
+      address: Printer's IP address.
+      callback: Called after this function finishes.
     """
     self._add_manual_device_in_progress = False
     if response is None and callback is not None:
@@ -234,7 +238,7 @@ class DeviceManager(QObject):
     """Stores IP address in Cura user's preferences.
 
     Args:
-      address: printer's IP address.
+      address: Printer's IP address.
     """
     Logger.log('d', 'Storing address %s in user preferences.', address)
     stored_addresses = self._get_stored_manual_addresses()
@@ -252,7 +256,7 @@ class DeviceManager(QObject):
     """Removes IP address from Cura user's preferences.
 
     Args:
-      address: printer's IP address.
+      address: Printer's IP address.
     """
     Logger.log('d', 'Removing address %s from user preferences.', address)
     stored_addresses = self._get_stored_manual_addresses()
@@ -267,10 +271,7 @@ class DeviceManager(QObject):
           'Could not remove address from stored_addresses, it was not there')
 
   def _get_stored_manual_addresses(self) -> List[str]:
-    """
-    Returns:
-      List of IP address from Cura user's preferences.
-    """
+    """Returns list of IP address from Cura user's preferences."""
     preferences = CuraApplication.getInstance().getPreferences()
     preferences.addPreference(self.MANUAL_DEVICES_PREFERENCE_KEY, '')
     if not preferences.getValue(self.MANUAL_DEVICES_PREFERENCE_KEY):
@@ -279,8 +280,9 @@ class DeviceManager(QObject):
 
   def _connect_to_output_device(self, device: MPSM2NetworkedPrinterOutputDevice,
                                 machine: GlobalStack) -> None:
-    """Connects to Output Device. This makes Cura display the printer as
-    online.
+    """Connects to Output Device.
+
+    This makes Cura display the printer as online.
 
     Args:
       device: Monoprice Select Mini V2 instance.
@@ -330,18 +332,12 @@ class DeviceManager(QObject):
 
   @staticmethod
   def _get_device_id(address: str) -> str:
-    """
-    Returns:
-      Device ID given an IP address.
-    """
+    """Returns device ID given an IP address."""
     return 'manual:{}'.format(address)
 
   @staticmethod
   def _get_address(device_id: str) -> Optional[str]:
-    """
-    Returns:
-      IP address given a device ID.
-    """
+    """Returns IP address given a device ID. None if device ID is not found."""
     if not device_id:
       return None
     return device_id[len('manual:'):]

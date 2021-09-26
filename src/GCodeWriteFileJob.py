@@ -18,7 +18,7 @@ class GCodeWriteFileJob(WriteFileJob):
   """Represents a g-code write file job."""
   def __init__(self, file_handler: Optional[FileHandler],
                nodes: List[SceneNode]) -> None:
-    # GCodeWriter only supports TextMode
+    # GCodeWriter only supports TextMode.
     super().__init__(file_handler.getWriterByMimeType('text/x-gcode'),
                      io.StringIO(), nodes,
                      FileWriter.OutputMode.TextMode)

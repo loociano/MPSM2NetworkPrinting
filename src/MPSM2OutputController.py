@@ -31,7 +31,7 @@ class MPSM2OutputController(PrinterOutputController):
     """Sets job state.
 
     Args:
-      job: print job output model.
-      state: print job state.
+      job: Print job output model.
+      state: Print job state.
     """
     self._output_device.setJobState(job.key, state)

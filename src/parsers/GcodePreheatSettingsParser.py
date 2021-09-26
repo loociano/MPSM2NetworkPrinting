@@ -9,13 +9,15 @@ from typing import Tuple
 class GcodePreheatSettingsParser:
   """Parses preheat settings from a list of g-code commands."""
 
+  # TODO: convert Tuple to new class.
   @staticmethod
   def parse(gcode: bytes) -> Tuple[int, int]:
     """Parses preheating bed and hotend temperature from gcode.
 
     Args:
       gcode: UTF-8 byte stream
-    Returns
+
+    Returns:
       Tuple with preheat bed and hotend temperature. Both can be None.
     """
     bed_temperature, hotend_temperature = None, None

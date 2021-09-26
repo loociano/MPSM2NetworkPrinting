@@ -20,12 +20,12 @@ class MPSM2PrinterStatusModel:
     """Constructor.
 
     Args:
-      hotend_temperature: from 0 to 280.
-      target_hotend_temperature: from 0 to 280.
-      bed_temperature: from 0 to 85.
-      target_bed_temperature: from 0 to 85.
-      progress: from 0 to 100
-      state: idle or printing.
+      hotend_temperature: From 0 to 280.
+      target_hotend_temperature: From 0 to 280.
+      bed_temperature: From 0 to 85.
+      target_bed_temperature: From 0 to 85.
+      progress: From 0 to 100
+      state: Idle or printing.
     """
     self.hotend_temperature = hotend_temperature
     self.target_hotend_temperature = target_hotend_temperature

@@ -53,8 +53,7 @@ I18N_CATALOG = i18nCatalog('cura')
 
 
 class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
-  """Represents a networked OutputDevice for Monoprice Select Mini V2
-  printers."""
+  """Networked OutputDevice for Monoprice Select Mini V2 printers."""
   MAX_TARGET_HOTEND_TEMPERATURE = 260  # celsius
   MAX_TARGET_BED_TEMPERATURE = 85  # celsius
   NUM_DATA_POINTS = 30
@@ -133,76 +132,63 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
 
   @pyqtProperty(int, constant=True)
   def max_hotend_temperature(self) -> int:
-    """
-    Returns:
-      Maximum target hotend temperature for UI message.
+    """Returns maximum target hotend temperature for UI message.
     """
     return self.MAX_TARGET_HOTEND_TEMPERATURE
 
   @pyqtProperty(int, constant=True)
   def max_bed_temperature(self) -> int:
-    """
-    Returns:
-       maximum target bed temperature for UI message.
+    """Returns maximum target bed temperature for UI message.
     """
     return self.MAX_TARGET_BED_TEMPERATURE
 
   # pylint:disable=invalid-name
   @pyqtProperty(bool, notify=onPrinterUpload)
   def isUploading(self) -> bool:
-    """
-    Returns:
-       true if user is uploading a model to the printer.
+    """Returns True if user is uploading a model to the printer.
     """
     return self._is_uploading
 
   @pyqtProperty(bool, notify=startPrintRequestChanged)
   def has_start_print_request_in_progress(self) -> bool:
-    """
-    Returns:
-       true while printer is not printing.
+    """Returns True while printer is not printing.
     """
     return self._requested_start_print
 
   @pyqtProperty(bool, notify=pausePrintRequestChanged)
   def has_pause_print_request_in_progress(self) -> bool:
-    """
-    Returns:
-       true while the printer continues printing.
+    """Returns True while the printer continues printing.
     """
     return self._requested_pause_print
 
   @pyqtProperty(bool, notify=cancelPrintRequestChanged)
   def has_cancel_print_request_in_progress(self) -> bool:
-    """
-    Returns:
-       true while the printer continues printing.
+    """Returns True while the printer continues printing.
     """
     return self._requested_cancel_print
 
   @pyqtProperty(bool, notify=hasTargetHotendInProgressChanged)
   def has_target_hotend_in_progress(self) -> bool:
-    """
-    Returns:
-       true if there is a request to update hot-end temperature in progress.
+    """Returns True if there is a request to update hot-end temperature in
+    progress.
     """
     return self._requested_hotend_temperature is not None
 
   @pyqtProperty(bool, notify=hasTargetBedInProgressChanged)
   def has_target_bed_in_progress(self) -> bool:
-    """
-    Returns:
-       true if there is a request to update bed temperature in progress.
+    """Returns True if there is a request to update bed temperature in progress.
     """
     return self._requested_bed_temperature is not None
 
   @pyqtSlot(str, name='isValidHotendTemperature', result=bool)
   def is_valid_hotend_temperature(self, input_temperature: str) -> bool:
-    """
+    """Checks if the input hotend temperature is valid.
+
     Args:
-      input_temperature: user-entered target hotend temperature.
+      input_temperature: User-entered target hotend temperature.
+
     Returns:
-       true if temperature within range.
+       True if temperature within range.
     """
     if not input_temperature.isdigit():
       return False
@@ -231,7 +217,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     """Called when the user requests a target hotend temperature.
 
     Args:
-      celsius: requested target hotend temperature. Can be invalid.
+      celsius: Requested target hotend temperature. Can be invalid.
     """
     Logger.log('d', 'Setting target hotend temperature to %sºC.', celsius)
     try:
@@ -249,7 +235,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     """Called when the user requests a target bed temperature.
 
     Args:
-      celsius: requested target bed temperature. Can be invalid.
+      celsius: Requested target bed temperature. Can be invalid.
     """
     Logger.log('d', 'Setting target bed temperature to %sºC.', celsius)
     try:
@@ -329,9 +315,9 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     Args:
       nodes: A collection of scene nodes that should be written to the device.
       file_name: unused.
-      limit_mimetypes: unused.
-      file_handler: The filehandler to use to write the file with.
-      filter_by_machine: unused.
+      limit_mimetypes: Limits MIME types. Unused.
+      file_handler: The file handler to use to write the file with.
+      filter_by_machine: Whether to filter by machine. Unused.
     """
     Logger.log('d', 'Write to Output Device was requested.')
     if self._job_upload_message.visible:
@@ -356,17 +342,14 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self.printerStatusChanged.emit()
 
   def is_uploading(self) -> bool:
-    """
-    Returns:
-      true if the printer is uploading a job.
-    """
+    """Returns True if the printer is uploading a job."""
     return self._is_uploading
 
   def _on_print_job_created(self, job: GCodeWriteFileJob) -> None:
     """Called when a print job starts to upload.
 
     Args:
-      job: job that is being uploaded.
+      job: Job that is being uploaded.
     """
     if not job:
       Logger.log('e', 'No active exported job to upload!')
@@ -387,7 +370,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._is_uploading = False
     self._job_upload_message.hide()
     self._api_client.cancel_upload_print()
-    self._api_client.cancel_print()  # force cancel
+    self._api_client.cancel_print()  # Force cancel.
     PrintJobUploadCancelMessage().show()
     self.writeFinished.emit()
     self.onPrinterUpload.emit(False)
@@ -398,7 +381,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       self._is_uploading = False
       self._job_upload_message.hide()
       self._api_client.cancel_upload_print()
-      self._api_client.cancel_print()  # force cancel
+      self._api_client.cancel_print()  # Force cancel.
       PrintJobUploadErrorMessage().show()
       self.writeError.emit()
       self.onPrinterUpload.emit(False)
@@ -436,8 +419,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     """Called periodically by Cura to update the upload progress.
 
     Args:
-      bytes_sent: number of bytes already sent to the printer.
-      bytes_total: total bytes to be sent.
+      bytes_sent: Number of bytes already sent to the printer.
+      bytes_total: Total bytes to be sent.
     """
     self._job_upload_message.update(bytes_sent, bytes_total)
     self.writeProgress.emit()
@@ -460,7 +443,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       self._on_print_started_error()
 
   def _on_print_started_error(self) -> None:
-    """Called if there was an error to communicate the printer to start printing."""
+    """Called if there was an error to communicate the printer to start
+    printing."""
     self._requested_start_print = False
     PrintJobStartErrorMessage().show()
     self.startPrintRequestChanged.emit()
@@ -540,7 +524,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   def _set_ui_elements(self) -> None:
     """Sets Cura UI elements corresponding to this device."""
     self.setPriority(
-        3)  # Make sure the output device gets selected above local file output
+        3)  # Make sure the output device gets selected above local file output.
     self.setShortDescription(
         I18N_CATALOG.i18nc('@action:button Preceded by "Ready to".',
                            'Print over network'))
@@ -564,9 +548,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
 
   @staticmethod
   def _build_printer_conf_model() -> PrinterConfigurationModel:
-    """
-    Returns:
-      Printer's configuration model.
+    """Returns printer's configuration model.
     """
     printer_configuration_model = PrinterConfigurationModel()
     extruder_conf_model = ExtruderConfigurationModel()
@@ -576,9 +558,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     return printer_configuration_model
 
   def _build_printer_output_model(self) -> MPSM2PrinterOutputModel:
-    """
-    Returns:
-      Printer Output Model for this device.
+    """Returns printer Output Model for this device.
     """
     printer_output_model = MPSM2PrinterOutputModel(
         self._printer_output_controller)
@@ -675,8 +655,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     """Updates data points to plot temperatures over time.
 
     Args:
-      hotend_temperature: current hotend temperature in Celsius.
-      bed_temperature: current bed temperature in Celsius.
+      hotend_temperature: Current hotend temperature in Celsius.
+      bed_temperature: Current bed temperature in Celsius.
     """
     self._historical_hotend_temps.append(hotend_temperature)
     if len(self._historical_hotend_temps) > self.NUM_DATA_POINTS:

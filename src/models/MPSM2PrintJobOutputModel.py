@@ -24,7 +24,7 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
     """Constructor.
 
     Args:
-      output_controller: printer's output controller.
+      output_controller: Printer's output controller.
     """
     super().__init__(output_controller=output_controller, key='', name='')
     self._state = 'not_started'
@@ -41,7 +41,8 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
   # respond with progress in percentage points.
   @pyqtProperty(float)
   def progress(self) -> float:
-    """
+    """UI label for printing progress.
+
     Returns:
       Print job progress from 0.0 to 100.0.
     """
@@ -49,7 +50,8 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
 
   @pyqtProperty(str)
   def estimated_time_left(self) -> str:
-    """
+    """UI label for estimated time left.
+
     Returns:
        Human-readable estimated printing time left.
     """
@@ -64,7 +66,7 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
     """Updates job progress and calculates estimated printing time left.
 
     Args:
-      progress: job progress from 0.0 to 100.0.
+      progress: Job progress from 0.0 to 100.0.
     """
     if progress == 0:
       self._reset()

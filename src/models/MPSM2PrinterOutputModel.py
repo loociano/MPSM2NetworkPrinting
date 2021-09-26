@@ -13,13 +13,10 @@ class MPSM2PrinterOutputModel(PrinterOutputModel):
     """Constructor.
 
     Args:
-      output_controller: printer's output controller.
+      output_controller: Printer's output controller.
     """
     super().__init__(output_controller, number_of_extruders=1)
 
   def get_printer_state(self) -> str:
-    """
-    Returns:
-      Printer state. Can be 'idle' or 'printing'.
-    """
+    """Returns printer's state. Can be 'idle' or 'printing'."""
     return self._printer_state
