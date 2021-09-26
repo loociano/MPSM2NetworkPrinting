@@ -27,12 +27,10 @@ class TimeUtils:
   def _get_countdown_with_hours(seconds: int) -> str:
     hours = floor(seconds / 3600)
     minutes = round((seconds / 60) % 60)
-    return 'Approximately {}{} left.' \
-      .format('{} {}'
-              .format(hours, 'hours' if hours > 1 else 'hour'),
-              ', {} {}'.format(minutes,
-                               'minutes' if minutes > 1 else 'minute')
-              if minutes > 0 else '')
+    hours_str = f'{hours} hours' if hours > 1 else '1 hour'
+    minutes_str = f'{minutes} minutes' if minutes > 1 else '1 minute'
+    countdown_str = f'{hours_str}, {minutes_str}' if minutes > 0 else hours_str
+    return f'Approximately {countdown_str} left.'
 
   @staticmethod
   def _get_countdown_with_minutes(minutes: int) -> str:
