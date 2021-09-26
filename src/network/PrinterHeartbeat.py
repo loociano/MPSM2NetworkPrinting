@@ -8,15 +8,17 @@ from http.client import HTTPConnection
 from PyQt5.QtCore import QThread, pyqtSignal
 
 
+_REQUEST_TIMEOUT_SECS = 2
+_POLL_INTERVAL_SECS = 2
+
+
 class PrinterHeartbeat(QThread):
   """
   Background thread that polls printer status.
 
   Status contains printer state, temperatures and printing progress.
   """
-  REQUEST_TIMEOUT_SECS = 2
-  POLL_INTERVAL_SECS = 2
-  heartbeatSignal = pyqtSignal(str, str)  # address, raw response
+  heartbeatSignal = pyqtSignal(str, str)  # Address, raw response.
   onPrinterUpload = pyqtSignal(bool)
 
   def __init__(self, address: str, parent=None) -> None:
@@ -36,11 +38,10 @@ class PrinterHeartbeat(QThread):
     while self._is_running:
       if not self._is_uploading:
         self._inquiry()
-      time.sleep(PrinterHeartbeat.POLL_INTERVAL_SECS)
+      time.sleep(_POLL_INTERVAL_SECS)
 
   def _inquiry(self) -> None:
-    connection = HTTPConnection(self._address,
-                                timeout=PrinterHeartbeat.REQUEST_TIMEOUT_SECS)
+    connection = HTTPConnection(self._address, timeout=_REQUEST_TIMEOUT_SECS)
     try:
       connection.request('GET', '/inquiry')
       response = connection.getresponse()
