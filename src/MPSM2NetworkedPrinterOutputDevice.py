@@ -613,32 +613,27 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       NetworkErrorMessage().show()
 
   def _update_model_temperatures(
-      self,
-      printer_status_model: MPSM2PrinterStatusModel) -> None:
+      self, model: MPSM2PrinterStatusModel) -> None:
     """Updates temperatures in the printer's output model.
 
     Args:
-      printer_status_model: parsed model from printer's status response.
+      model: Parsed model from printer's status response.
     """
     self._printer_output_model.extruders[0].updateHotendTemperature(
-        float(printer_status_model.hotend_temperature))
+        float(model.hotend_temperature))
     self._update_historical_temperatures(
-        printer_status_model.hotend_temperature,
-        printer_status_model.bed_temperature)
+        model.hotend_temperature,
+        model.bed_temperature)
     self._printer_output_model.extruders[0].updateTargetHotendTemperature(
-        float(printer_status_model.target_hotend_temperature))
+        float(model.target_hotend_temperature))
     self._printer_output_model.updateBedTemperature(
-        float(printer_status_model.bed_temperature))
+        float(model.bed_temperature))
     self._printer_output_model.updateTargetBedTemperature(
-        float(printer_status_model.target_bed_temperature))
-
-    if self._requested_hotend_temperature \
-        == printer_status_model.target_hotend_temperature:
+        float(model.target_bed_temperature))
+    if self._requested_hotend_temperature == model.target_hotend_temperature:
       self._requested_hotend_temperature = None
       self.hasTargetHotendInProgressChanged.emit()
-
-    if self._requested_bed_temperature \
-        == printer_status_model.target_bed_temperature:
+    if self._requested_bed_temperature == model.target_bed_temperature:
       self._requested_bed_temperature = None
       self.hasTargetBedInProgressChanged.emit()
 
