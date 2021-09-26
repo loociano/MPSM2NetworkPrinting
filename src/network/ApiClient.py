@@ -5,8 +5,7 @@ Plugin is licensed under the GNU Lesser General Public License v3.0.
 from typing import Callable, Optional
 
 from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import QNetworkReply, QHttpPart, QNetworkRequest, \
-  QHttpMultiPart, QNetworkAccessManager
+from PyQt5.QtNetwork import QNetworkReply, QHttpPart, QNetworkRequest, QHttpMultiPart, QNetworkAccessManager
 
 from UM.Logger import Logger
 
