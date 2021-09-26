@@ -30,15 +30,19 @@ class MPSM2PrinterStatusParser:
     if not matches:
       Logger.log('e', 'Could not parse response: %s.', raw_response)
       return None
-    state = matches.group(6)
     return MPSM2PrinterStatusModel(
         hotend_temperature=int(matches.group(1)),
         target_hotend_temperature=int(matches.group(2)),
         bed_temperature=int(matches.group(3)),
         target_bed_temperature=int(matches.group(4)),
         progress=int(matches.group(5)),
-        state=MPSM2PrinterStatusModel.State.IDLE if state == 'I'
-        else
-        MPSM2PrinterStatusModel.State.PRINTING if state == 'P'
-        else
-        MPSM2PrinterStatusModel.State.UNKNOWN)
+        state=MPSM2PrinterStatusParser._to_model_state(matches.group(6)))
+
+  @staticmethod
+  def _to_model_state(state: str) -> MPSM2PrinterStatusModel.State:
+    if state == 'I':
+      return MPSM2PrinterStatusModel.State.IDLE
+    if state == 'P':
+      return MPSM2PrinterStatusModel.State.PRINTING
+    return MPSM2PrinterStatusModel.State.UNKNOWN
+
