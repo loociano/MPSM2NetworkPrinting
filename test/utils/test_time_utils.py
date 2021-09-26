@@ -8,7 +8,7 @@ from src.utils.TimeUtils import TimeUtils
 
 
 class HumanReadableCountdown(unittest.TestCase):
-  def test_seconds(self):
+  def test_convertSeconds_succeeds(self):
     self.assertEqual('Approximately 0 seconds left.',
                      TimeUtils.get_human_readable_countdown(0))
     self.assertEqual('Approximately 1 seconds left.',
@@ -16,7 +16,7 @@ class HumanReadableCountdown(unittest.TestCase):
     self.assertEqual('Approximately 59 seconds left.',
                      TimeUtils.get_human_readable_countdown(59))
 
-  def test_minutes(self):
+  def test_convertMinutes_succeeds(self):
     self.assertEqual('Approximately 1 minute left.',
                      TimeUtils.get_human_readable_countdown(60))
     self.assertEqual('Approximately 1 minute left.',
@@ -26,7 +26,7 @@ class HumanReadableCountdown(unittest.TestCase):
     self.assertEqual('Approximately 59 minutes left.',
                      TimeUtils.get_human_readable_countdown(3600 - 60))
 
-  def test_hours(self):
+  def test_convertHours_succeeds(self):
     self.assertEqual('Approximately 1 hour left.',
                      TimeUtils.get_human_readable_countdown(3600))
     self.assertEqual('Approximately 1 hour, 1 minute left.',
