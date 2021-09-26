@@ -11,7 +11,7 @@ from PyQt5.QtCore import pyqtProperty, QTimer
 from cura.PrinterOutput import PrinterOutputController
 from cura.PrinterOutput.Models.PrintJobOutputModel import PrintJobOutputModel
 # pylint:disable=relative-beyond-top-level
-from ..utils.TimeUtils import TimeUtils
+from ..utils import TimeUtils
 
 _POLL_INTERVAL_MILLIS = 100
 _MIN_PERCENT_POINTS = 2  # Minimum points to calculate estimated time left.

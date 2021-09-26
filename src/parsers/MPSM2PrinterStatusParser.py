@@ -10,39 +10,33 @@ from UM.Logger import Logger
 # pylint:disable=relative-beyond-top-level
 from ..models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
 
-
 _RESPONSE_STATUS_REGEX = r"^T(\d+)/(\d+)P(\d+)/(\d+)/(\d+)([IP])$"
 
 
-class MPSM2PrinterStatusParser:
-  """Parser for Monoprice Select Mini V2 HTTP status responses."""
+def _to_model_state(state: str) -> MPSM2PrinterStatusModel.State:
+  if state == 'I':
+    return MPSM2PrinterStatusModel.State.IDLE
+  if state == 'P':
+    return MPSM2PrinterStatusModel.State.PRINTING
+  return MPSM2PrinterStatusModel.State.UNKNOWN
 
-  @staticmethod
-  def parse(raw_response: str) -> Optional[MPSM2PrinterStatusModel]:
-    """Parses the HTTP status response into a model.
 
-    Args:
-      raw_response: HTTP status body response.
-    Returns:
-      Model with printer state, temperatures and print progress.
-    """
-    matches = re.match(_RESPONSE_STATUS_REGEX, raw_response)
-    if not matches:
-      Logger.log('e', 'Could not parse response: %s.', raw_response)
-      return None
-    return MPSM2PrinterStatusModel(
-        hotend_temperature=int(matches.group(1)),
-        target_hotend_temperature=int(matches.group(2)),
-        bed_temperature=int(matches.group(3)),
-        target_bed_temperature=int(matches.group(4)),
-        progress=int(matches.group(5)),
-        state=MPSM2PrinterStatusParser._to_model_state(matches.group(6)))
+def parse(raw_response: str) -> Optional[MPSM2PrinterStatusModel]:
+  """Parses the HTTP status response into a model.
 
-  @staticmethod
-  def _to_model_state(state: str) -> MPSM2PrinterStatusModel.State:
-    if state == 'I':
-      return MPSM2PrinterStatusModel.State.IDLE
-    if state == 'P':
-      return MPSM2PrinterStatusModel.State.PRINTING
-    return MPSM2PrinterStatusModel.State.UNKNOWN
-
+  Args:
+    raw_response: HTTP status body response.
+  Returns:
+    Model with printer state, temperatures and print progress.
+  """
+  matches = re.match(_RESPONSE_STATUS_REGEX, raw_response)
+  if not matches:
+    Logger.log('e', 'Could not parse response: %s.', raw_response)
+    return None
+  return MPSM2PrinterStatusModel(
+      hotend_temperature=int(matches.group(1)),
+      target_hotend_temperature=int(matches.group(2)),
+      bed_temperature=int(matches.group(3)),
+      target_bed_temperature=int(matches.group(4)),
+      progress=int(matches.group(5)),
+      state=_to_model_state(matches.group(6)))

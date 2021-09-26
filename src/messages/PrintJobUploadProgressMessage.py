@@ -8,7 +8,7 @@ from PyQt5.QtCore import QTimer
 
 from UM import i18nCatalog
 from UM.Message import Message
-from ..utils.TimeUtils import TimeUtils
+from ..utils import TimeUtils
 
 I18N_CATALOG = i18nCatalog('cura')
 

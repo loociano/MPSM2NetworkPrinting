@@ -24,6 +24,84 @@ _METADATA_MPSM2_KEY = 'mpsm2_network_key'
 _MANUAL_DEVICES_PREFERENCE_KEY = 'mpsm2networkprinting/manual_instances'
 
 
+def _get_stored_manual_addresses() -> List[str]:
+  """Returns list of IP address from Cura user's preferences."""
+  preferences = CuraApplication.getInstance().getPreferences()
+  preferences.addPreference(_MANUAL_DEVICES_PREFERENCE_KEY, '')
+  if not preferences.getValue(_MANUAL_DEVICES_PREFERENCE_KEY):
+    return []
+  return preferences.getValue(_MANUAL_DEVICES_PREFERENCE_KEY).split(',')
+
+
+def _get_device_id(address: str) -> str:
+  """Returns device ID given an IP address."""
+  return 'manual:{}'.format(address)
+
+
+def _get_address(device_id: str) -> Optional[str]:
+  """Returns IP address given a device ID. None if device ID is not found."""
+  if not device_id:
+    return None
+  return device_id[len('manual:'):]
+
+
+def _connect_to_output_device(device: MPSM2NetworkedPrinterOutputDevice,
+                              machine: GlobalStack) -> None:
+  """Connects to Output Device.
+
+  This makes Cura display the printer as online.
+
+  Args:
+    device: Monoprice Select Mini V2 instance.
+  """
+  Logger.log('d', 'Connecting to Output Device with key: %s.', device.key)
+  machine.addConfiguredConnectionType(device.connectionType.value)
+  if not device.isConnected():
+    device.connect()
+  output_device_manager = (
+      CuraApplication.getInstance().getOutputDeviceManager())
+  if device.key not in output_device_manager.getOutputDeviceIds():
+    output_device_manager.addOutputDevice(device)
+
+
+def _store_manual_address(address: str) -> None:
+  """Stores IP address in Cura user's preferences.
+
+  Args:
+    address: Printer's IP address.
+  """
+  Logger.log('d', 'Storing address %s in user preferences.', address)
+  stored_addresses = _get_stored_manual_addresses()
+  if address in stored_addresses:
+    return  # Prevent duplicates.
+  if len(stored_addresses) == 1 and not stored_addresses[0]:
+    new_value = address
+  else:
+    stored_addresses.append(address)
+    new_value = ','.join(stored_addresses)
+  CuraApplication.getInstance().getPreferences().setValue(
+      _MANUAL_DEVICES_PREFERENCE_KEY, new_value)
+
+
+def _remove_stored_manual_address(address: str) -> None:
+  """Removes IP address from Cura user's preferences.
+
+  Args:
+    address: Printer's IP address.
+  """
+  Logger.log('d', 'Removing address %s from user preferences.', address)
+  stored_addresses = _get_stored_manual_addresses()
+  try:
+    stored_addresses.remove(address)  # Can throw ValueError.
+    new_value = ','.join(stored_addresses)
+    CuraApplication.getInstance().getPreferences().setValue(
+        _MANUAL_DEVICES_PREFERENCE_KEY, new_value)
+  except ValueError:
+    Logger.log(
+        'w',
+        'Could not remove address from stored_addresses, it was not there.')
+
+
 class DeviceManager(QObject):
   """Discovers and manages Monoprice Select Mini V2 printers over the
   network."""
@@ -44,7 +122,7 @@ class DeviceManager(QObject):
 
   def start(self) -> None:
     Logger.log('d', 'Starting Device Manager.')
-    for address in self._get_stored_manual_addresses():
+    for address in _get_stored_manual_addresses():
       self._create_heartbeat_thread(address)
 
   def stop(self) -> None:
@@ -73,7 +151,7 @@ class DeviceManager(QObject):
     stored_device_id = active_machine.getMetaDataEntry(_METADATA_MPSM2_KEY)
     for device in self._discovered_devices.values():
       if device.key == stored_device_id:
-        self._connect_to_output_device(device, active_machine)
+        _connect_to_output_device(device, active_machine)
       elif device.key in output_device_manager.getOutputDeviceIds():
         output_device_manager.removeOutputDevice(device.key)
 
@@ -106,14 +184,14 @@ class DeviceManager(QObject):
     Logger.log('d', 'Removing manual device with device_id: %s and address: %s',
                device_id, address)
     if device_id not in self._discovered_devices and address is not None:
-      device_id = DeviceManager._get_device_id(address)
+      device_id = _get_device_id(address)
 
     if device_id in self._discovered_devices:
       address = address or self._discovered_devices[device_id].ipAddress
       self._on_discovered_device_removed(device_id)
 
-    if address in self._get_stored_manual_addresses():
-      self._remove_stored_manual_address(address)
+    if address in _get_stored_manual_addresses():
+      _remove_stored_manual_address(address)
 
     if address in self._background_threads:
       Logger.log('d', 'Stopping background thread for address %s.', address)
@@ -145,7 +223,7 @@ class DeviceManager(QObject):
       container: deleted container.
     """
     device_id = container.getMetaDataEntry(_METADATA_MPSM2_KEY)
-    self.remove_device(device_id, DeviceManager._get_address(device_id))
+    self.remove_device(device_id, _get_address(device_id))
 
   def _on_printer_status_error(self):
     """Called when the printer status has error."""
@@ -168,8 +246,7 @@ class DeviceManager(QObject):
 
     Logger.log('d', 'Received response from printer on address %s: %s.',
                address, response)
-    device = MPSM2NetworkedPrinterOutputDevice(
-        DeviceManager._get_device_id(address), address)
+    device = MPSM2NetworkedPrinterOutputDevice(_get_device_id(address), address)
     device.onPrinterUpload.connect(self.onPrinterUpload)
     device.update_printer_status(response)
     discovered_printers_model = (
@@ -181,7 +258,7 @@ class DeviceManager(QObject):
         create_callback=self._create_machine,
         machine_type=device.printerType,
         device=device)
-    self._store_manual_address(address)
+    _store_manual_address(address)
     self._discovered_devices[device.getId()] = device
     self.discoveredDevicesChanged.emit()
     self.connect_to_active_machine()
@@ -228,70 +305,8 @@ class DeviceManager(QObject):
       new_machine.setMetaDataEntry(_METADATA_MPSM2_KEY, device.key)
       CuraApplication.getInstance().getMachineManager().setActiveMachine(
           new_machine.getId())
-      self._connect_to_output_device(device, new_machine)
+      _connect_to_output_device(device, new_machine)
       self._create_heartbeat_thread(device.ipAddress)
-
-  def _store_manual_address(self, address: str) -> None:
-    """Stores IP address in Cura user's preferences.
-
-    Args:
-      address: Printer's IP address.
-    """
-    Logger.log('d', 'Storing address %s in user preferences.', address)
-    stored_addresses = self._get_stored_manual_addresses()
-    if address in stored_addresses:
-      return  # Prevent duplicates.
-    if len(stored_addresses) == 1 and not stored_addresses[0]:
-      new_value = address
-    else:
-      stored_addresses.append(address)
-      new_value = ','.join(stored_addresses)
-    CuraApplication.getInstance().getPreferences().setValue(
-        _MANUAL_DEVICES_PREFERENCE_KEY, new_value)
-
-  def _remove_stored_manual_address(self, address: str) -> None:
-    """Removes IP address from Cura user's preferences.
-
-    Args:
-      address: Printer's IP address.
-    """
-    Logger.log('d', 'Removing address %s from user preferences.', address)
-    stored_addresses = self._get_stored_manual_addresses()
-    try:
-      stored_addresses.remove(address)  # Can throw ValueError.
-      new_value = ','.join(stored_addresses)
-      CuraApplication.getInstance().getPreferences().setValue(
-          _MANUAL_DEVICES_PREFERENCE_KEY, new_value)
-    except ValueError:
-      Logger.log(
-          'w',
-          'Could not remove address from stored_addresses, it was not there.')
-
-  def _get_stored_manual_addresses(self) -> List[str]:
-    """Returns list of IP address from Cura user's preferences."""
-    preferences = CuraApplication.getInstance().getPreferences()
-    preferences.addPreference(_MANUAL_DEVICES_PREFERENCE_KEY, '')
-    if not preferences.getValue(_MANUAL_DEVICES_PREFERENCE_KEY):
-      return []
-    return preferences.getValue(_MANUAL_DEVICES_PREFERENCE_KEY).split(',')
-
-  def _connect_to_output_device(self, device: MPSM2NetworkedPrinterOutputDevice,
-                                machine: GlobalStack) -> None:
-    """Connects to Output Device.
-
-    This makes Cura display the printer as online.
-
-    Args:
-      device: Monoprice Select Mini V2 instance.
-    """
-    Logger.log('d', 'Connecting to Output Device with key: %s.', device.key)
-    machine.addConfiguredConnectionType(device.connectionType.value)
-    if not device.isConnected():
-      device.connect()
-    output_device_manager = (
-        CuraApplication.getInstance().getOutputDeviceManager())
-    if device.key not in output_device_manager.getOutputDeviceIds():
-      output_device_manager.addOutputDevice(device)
 
   def _on_printer_heartbeat(self, address: str, response: str) -> None:
     """Called when background heartbeat was received. Includes timeout.
@@ -302,7 +317,7 @@ class DeviceManager(QObject):
     """
     device = cast(
         MPSM2NetworkedPrinterOutputDevice,
-        self._discovered_devices.get(DeviceManager._get_device_id(address)))
+        self._discovered_devices.get(_get_device_id(address)))
     if response == 'timeout':
       if (device
           and device.isConnected()
@@ -319,21 +334,9 @@ class DeviceManager(QObject):
 
     device = cast(
         MPSM2NetworkedPrinterOutputDevice,
-        self._discovered_devices.get(DeviceManager._get_device_id(address)))
+        self._discovered_devices.get(_get_device_id(address)))
     if not device.isConnected():
       Logger.log('d', 'Printer at %s is up again. Reconnecting.', address)
       self.connect_to_active_machine()
       self.discoveredDevicesChanged.emit()
     device.update_printer_status(response)
-
-  @staticmethod
-  def _get_device_id(address: str) -> str:
-    """Returns device ID given an IP address."""
-    return 'manual:{}'.format(address)
-
-  @staticmethod
-  def _get_address(device_id: str) -> Optional[str]:
-    """Returns IP address given a device ID. None if device ID is not found."""
-    if not device_id:
-      return None
-    return device_id[len('manual:'):]

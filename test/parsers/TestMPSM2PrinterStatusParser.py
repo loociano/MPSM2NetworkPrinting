@@ -5,7 +5,7 @@ Plugin is licensed under the GNU Lesser General Public License v3.0.
 import unittest
 
 from src.models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
-from src.parsers.MPSM2PrinterStatusParser import MPSM2PrinterStatusParser
+from src.parsers import MPSM2PrinterStatusParser
 
 
 class MPSM2PrinterStatusParserTest(unittest.TestCase):

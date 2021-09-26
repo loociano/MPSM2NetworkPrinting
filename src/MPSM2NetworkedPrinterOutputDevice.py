@@ -35,12 +35,36 @@ from .messages.SetTargetTemperatureErrorMessage import SetTargetTemperatureError
 from .models.MPSM2PrintJobOutputModel import MPSM2PrintJobOutputModel
 from .models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
 from .network.ApiClient import ApiClient
-from .parsers.GcodePreheatSettingsParser import GcodePreheatSettingsParser
-from .parsers.MPSM2PrinterStatusParser import MPSM2PrinterStatusParser
+from .parsers import GcodePreheatSettingsParser
+from .parsers import MPSM2PrinterStatusParser
 
 I18N_CATALOG = i18nCatalog('cura')
 # Monoprice Select Mini V2 printer has a single extruder.
 _NUM_EXTRUDERS = 1
+
+
+def _build_printer_conf_model() -> PrinterConfigurationModel:
+  """Returns printer's configuration model."""
+  printer_configuration_model = PrinterConfigurationModel()
+  extruder_conf_model = ExtruderConfigurationModel()
+  extruder_conf_model.setPosition(0)
+  printer_configuration_model.setExtruderConfigurations([extruder_conf_model])
+  printer_configuration_model.setPrinterType('type')
+  return printer_configuration_model
+
+
+def _on_increased_upload_speed_error() -> None:
+  NetworkErrorMessage().show()
+
+
+def _on_increased_upload_speed(response: str) -> None:
+  """Called when a request to increase upload speed completed.
+
+  Args:
+    response: HTTP response to the gcode command request.
+  """
+  if response.upper() != 'OK':
+    _on_increased_upload_speed_error()
 
 
 class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
@@ -104,8 +128,8 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._load_monitor_tab()
     self._set_ui_elements()
     self._api_client.increase_upload_speed(
-        self._on_increased_upload_speed,
-        self._on_increased_upload_speed_error)
+        _on_increased_upload_speed,
+        _on_increased_upload_speed_error)
 
   @pyqtProperty(QObject, notify=printerStatusChanged)
   def printer(self) -> PrinterOutputModel:
@@ -492,18 +516,6 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     SetTargetTemperatureErrorMessage().show()
     self.hasTargetBedInProgressChanged.emit()
 
-  def _on_increased_upload_speed(self, response: str) -> None:
-    """Called when a request to increase upload speed completed.
-
-    Args:
-      response: HTTP response to the gcode command request.
-    """
-    if response.upper() != 'OK':
-      self._on_increased_upload_speed_error()
-
-  def _on_increased_upload_speed_error(self) -> None:
-    NetworkErrorMessage().show()
-
   def _set_ui_elements(self) -> None:
     """Sets Cura UI elements corresponding to this device."""
     self.setPriority(
@@ -529,16 +541,6 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     self._monitor_view_qml_path = os.path.join(
         plugin_path, 'resources', 'qml', 'MonitorStage.qml')
 
-  @staticmethod
-  def _build_printer_conf_model() -> PrinterConfigurationModel:
-    """Returns printer's configuration model."""
-    printer_configuration_model = PrinterConfigurationModel()
-    extruder_conf_model = ExtruderConfigurationModel()
-    extruder_conf_model.setPosition(0)
-    printer_configuration_model.setExtruderConfigurations([extruder_conf_model])
-    printer_configuration_model.setPrinterType('type')
-    return printer_configuration_model
-
   def _build_printer_output_model(self) -> PrinterOutputModel:
     """Returns printer Output Model for this device."""
     printer_output_model = PrinterOutputModel(
@@ -548,7 +550,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     printer_output_model.updateName(self.address)
     printer_output_model.updateState('idle')
     printer_output_model.setAvailableConfigurations(
-        [MPSM2NetworkedPrinterOutputDevice._build_printer_conf_model()])
+        [_build_printer_conf_model()])
     printer_output_model.updateType('Monoprice Select Mini')
     printer_output_model.updateActivePrintJob(self._print_job_model)
     return printer_output_model

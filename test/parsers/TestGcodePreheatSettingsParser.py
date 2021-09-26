@@ -4,7 +4,7 @@ Plugin is licensed under the GNU Lesser General Public License v3.0.
 """
 import unittest
 
-from src.parsers.GcodePreheatSettingsParser import GcodePreheatSettingsParser
+from src.parsers import GcodePreheatSettingsParser
 
 
 class GcodePreheatSettingsParserTest(unittest.TestCase):

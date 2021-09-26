@@ -4,7 +4,7 @@ Plugin is licensed under the GNU Lesser General Public License v3.0.
 """
 import unittest
 
-from src.utils.TimeUtils import TimeUtils
+from src.utils import TimeUtils
 
 
 class HumanReadableCountdown(unittest.TestCase):
