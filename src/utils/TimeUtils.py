@@ -21,7 +21,7 @@ class TimeUtils:
       return TimeUtils._get_countdown_with_hours(seconds)
     if seconds / 60 >= 1:
       return TimeUtils._get_countdown_with_minutes(round(seconds / 60))
-    return 'Approximately {} seconds left.'.format(seconds)
+    return f'Approximately {seconds} seconds left.'
 
   @staticmethod
   def _get_countdown_with_hours(seconds: int) -> str:
@@ -38,4 +38,4 @@ class TimeUtils:
   def _get_countdown_with_minutes(minutes: int) -> str:
     if minutes == 1:
       return 'Approximately 1 minute left.'
-    return 'Approximately {} minutes left.'.format(minutes)
+    return f'Approximately {minutes} minutes left.'
