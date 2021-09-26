@@ -21,12 +21,13 @@ from .PrinterHeartbeat import PrinterHeartbeat
 from ..MPSM2NetworkedPrinterOutputDevice \
   import MPSM2NetworkedPrinterOutputDevice
 
+_METADATA_MPSM2_KEY = 'mpsm2_network_key'
+_MANUAL_DEVICES_PREFERENCE_KEY = 'mpsm2networkprinting/manual_instances'
+
 
 class DeviceManager(QObject):
   """Discovers and manages Monoprice Select Mini V2 printers over the
   network."""
-  METADATA_MPSM2_KEY = 'mpsm2_network_key'
-  MANUAL_DEVICES_PREFERENCE_KEY = 'mpsm2networkprinting/manual_instances'
   I18N_CATALOG = i18nCatalog('cura')
 
   discoveredDevicesChanged = Signal()
@@ -41,7 +42,6 @@ class DeviceManager(QObject):
 
     ContainerRegistry.getInstance().containerRemoved.connect(
         self._on_printer_container_removed)
-
     self._add_manual_device_in_progress = False
 
   def start(self) -> None:
@@ -70,9 +70,9 @@ class DeviceManager(QObject):
     if not active_machine:
       return  # Should only occur on fresh installations of Cura.
 
-    output_device_manager = \
-      CuraApplication.getInstance().getOutputDeviceManager()
-    stored_device_id = active_machine.getMetaDataEntry(self.METADATA_MPSM2_KEY)
+    output_device_manager = (
+        CuraApplication.getInstance().getOutputDeviceManager())
+    stored_device_id = active_machine.getMetaDataEntry(_METADATA_MPSM2_KEY)
     for device in self._discovered_devices.values():
       if device.key == stored_device_id:
         self._connect_to_output_device(device, active_machine)
@@ -146,7 +146,7 @@ class DeviceManager(QObject):
     Args:
       container: deleted container.
     """
-    device_id = container.getMetaDataEntry(self.METADATA_MPSM2_KEY)
+    device_id = container.getMetaDataEntry(_METADATA_MPSM2_KEY)
     self.remove_device(device_id, DeviceManager._get_address(device_id))
 
   def _on_printer_status_error(self):
@@ -183,7 +183,6 @@ class DeviceManager(QObject):
         create_callback=self._create_machine,
         machine_type=device.printerType,
         device=device)
-
     self._store_manual_address(address)
     self._discovered_devices[device.getId()] = device
     self.discoveredDevicesChanged.emit()
@@ -220,7 +219,7 @@ class DeviceManager(QObject):
 
     machine_manager = CuraApplication.getInstance().getMachineManager()
     machine = machine_manager.getMachine(
-        'monoprice_select_mini_v2', {self.METADATA_MPSM2_KEY: device_id})
+        'monoprice_select_mini_v2', {_METADATA_MPSM2_KEY: device_id})
     if machine is None:
       new_machine = CuraStackBuilder.createMachine(
           device.name, device.printerType)
@@ -228,7 +227,7 @@ class DeviceManager(QObject):
         Logger.log('e', 'Failed to create a new machine.')
         return
       new_machine.setMetaDataEntry('group_name', device.name)
-      new_machine.setMetaDataEntry(self.METADATA_MPSM2_KEY, device.key)
+      new_machine.setMetaDataEntry(_METADATA_MPSM2_KEY, device.key)
       CuraApplication.getInstance().getMachineManager().setActiveMachine(
           new_machine.getId())
       self._connect_to_output_device(device, new_machine)
@@ -250,7 +249,7 @@ class DeviceManager(QObject):
       stored_addresses.append(address)
       new_value = ','.join(stored_addresses)
     CuraApplication.getInstance().getPreferences().setValue(
-        self.MANUAL_DEVICES_PREFERENCE_KEY, new_value)
+        _MANUAL_DEVICES_PREFERENCE_KEY, new_value)
 
   def _remove_stored_manual_address(self, address: str) -> None:
     """Removes IP address from Cura user's preferences.
@@ -261,22 +260,22 @@ class DeviceManager(QObject):
     Logger.log('d', 'Removing address %s from user preferences.', address)
     stored_addresses = self._get_stored_manual_addresses()
     try:
-      stored_addresses.remove(address)  # Can throw a ValueError
+      stored_addresses.remove(address)  # Can throw ValueError.
       new_value = ','.join(stored_addresses)
       CuraApplication.getInstance().getPreferences().setValue(
-          self.MANUAL_DEVICES_PREFERENCE_KEY, new_value)
+          _MANUAL_DEVICES_PREFERENCE_KEY, new_value)
     except ValueError:
       Logger.log(
           'w',
-          'Could not remove address from stored_addresses, it was not there')
+          'Could not remove address from stored_addresses, it was not there.')
 
   def _get_stored_manual_addresses(self) -> List[str]:
     """Returns list of IP address from Cura user's preferences."""
     preferences = CuraApplication.getInstance().getPreferences()
-    preferences.addPreference(self.MANUAL_DEVICES_PREFERENCE_KEY, '')
-    if not preferences.getValue(self.MANUAL_DEVICES_PREFERENCE_KEY):
+    preferences.addPreference(_MANUAL_DEVICES_PREFERENCE_KEY, '')
+    if not preferences.getValue(_MANUAL_DEVICES_PREFERENCE_KEY):
       return []
-    return preferences.getValue(self.MANUAL_DEVICES_PREFERENCE_KEY).split(',')
+    return preferences.getValue(_MANUAL_DEVICES_PREFERENCE_KEY).split(',')
 
   def _connect_to_output_device(self, device: MPSM2NetworkedPrinterOutputDevice,
                                 machine: GlobalStack) -> None:
@@ -289,7 +288,6 @@ class DeviceManager(QObject):
     """
     Logger.log('d', 'Connecting to Output Device with key: %s.', device.key)
     machine.addConfiguredConnectionType(device.connectionType.value)
-
     if not device.isConnected():
       device.connect()
 
@@ -327,7 +325,6 @@ class DeviceManager(QObject):
       Logger.log('d', 'Printer at %s is up again. Reconnecting.', address)
       self.connect_to_active_machine()
       self.discoveredDevicesChanged.emit()
-
     device.update_printer_status(response)
 
   @staticmethod
