@@ -64,7 +64,7 @@ class ApiClient:
     """
     reply = self._network_manager.get(
         self._create_empty_request('/set?cmd={P:M}'))
-    if on_finished is not None:
+    if on_finished:
       self._register_callback(reply, on_finished, on_error)
 
   def resume_print(self, on_finished: Callable, on_error=None) -> None:
@@ -105,7 +105,7 @@ class ApiClient:
     """
     reply = self._network_manager.get(
         self._create_empty_request('/set?cmd={P:X}'))
-    if on_finished is not None:
+    if on_finished:
       self._register_callback(reply, on_finished, on_error)
 
   def upload_print(self, filename: str, payload: bytes, on_finished: Callable,
@@ -148,7 +148,7 @@ class ApiClient:
   def cancel_upload_print(self) -> None:
     """Cancels the upload request."""
     Logger.log('d', 'Cancelling upload request.')
-    if self._upload_model_reply is not None:
+    if self._upload_model_reply:
       self._upload_model_reply.abort()
       self._upload_model_reply = None
 
@@ -214,10 +214,10 @@ class ApiClient:
 
     def parse() -> None:
       """Parses the HTTP response."""
-      if reply.attribute(
-          QNetworkRequest.HttpStatusCodeAttribute) is None or reply.error() > 0:
+      if not reply.attribute(
+          QNetworkRequest.HttpStatusCodeAttribute) or reply.error() > 0:
         Logger.log('e', 'No response received from printer.')
-        if on_error is not None:
+        if on_error:
           on_error()
         return
       on_finished(self._parse_reply(reply))
