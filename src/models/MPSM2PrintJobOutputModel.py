@@ -13,13 +13,13 @@ from cura.PrinterOutput.Models.PrintJobOutputModel import PrintJobOutputModel
 from ..utils.TimeUtils import TimeUtils
 
 
+_POLL_INTERVAL_MILLIS = 100
+_MIN_PERCENT_POINTS = 2  # Minimum points to calculate estimated time left.
+_MAX_REMAINING_TIME_MILLIS = 24 * 60 * 60 * 1000  # Arbitrary max.
+
+
 class MPSM2PrintJobOutputModel(PrintJobOutputModel):
   """Print Job Output Model."""
-
-  POLL_INTERVAL_MILLIS = 100
-  MIN_PERCENT_POINTS = 2  # minimum points to calculate estimated time left.
-  MAX_REMAINING_TIME_MILLIS = 24 * 60 * 60 * 1000  # arbitrary max
-
   def __init__(self, output_controller: PrinterOutputController) -> None:
     """Constructor.
 
@@ -31,7 +31,7 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
     self._progress = 0
     self._elapsed_print_time_millis = 0
     self._elapsed_percentage_points = None  # type: Optional[int]
-    self._remaining_print_time_millis = self.MAX_REMAINING_TIME_MILLIS
+    self._remaining_print_time_millis = _MAX_REMAINING_TIME_MILLIS
     self._stopwatch = QTimer(self)
     self._stopwatch.timeout.connect(self._tick)
     self._reset()
@@ -55,10 +55,10 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
     Returns:
        Human-readable estimated printing time left.
     """
-    if not self._elapsed_percentage_points \
-        or self._elapsed_percentage_points < self.MIN_PERCENT_POINTS:
+    if self._elapsed_percentage_points is None:
       return ''
-
+    if self._elapsed_percentage_points < _MIN_PERCENT_POINTS:
+      return ''
     return TimeUtils.get_human_readable_countdown(
         seconds=int(self._remaining_print_time_millis / 1000))
 
@@ -76,7 +76,7 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
 
   def _reset(self):
     """Resets variables to calculate estimated print time left."""
-    self._remaining_print_time_millis = self.MAX_REMAINING_TIME_MILLIS
+    self._remaining_print_time_millis = _MAX_REMAINING_TIME_MILLIS
     self._elapsed_print_time_millis = 0
     self._elapsed_percentage_points = None
     if self._stopwatch.isActive():
@@ -93,7 +93,7 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
       self._elapsed_percentage_points += 1
       if not self._stopwatch.isActive():
         # New percent point seen. Start measuring.
-        self._stopwatch.start(self.POLL_INTERVAL_MILLIS)
+        self._stopwatch.start(_POLL_INTERVAL_MILLIS)
       return
 
     new_remaining_time = (100 - self._progress) \
@@ -104,4 +104,4 @@ class MPSM2PrintJobOutputModel(PrintJobOutputModel):
 
   def _tick(self):
     """Updates stopwatch."""
-    self._elapsed_print_time_millis += self.POLL_INTERVAL_MILLIS
+    self._elapsed_print_time_millis += _POLL_INTERVAL_MILLIS
