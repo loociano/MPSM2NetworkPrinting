@@ -15,6 +15,7 @@ from UM.i18n import i18nCatalog
 from cura.CuraApplication import CuraApplication
 from cura.PrinterOutput.Models.ExtruderConfigurationModel import ExtruderConfigurationModel
 from cura.PrinterOutput.Models.PrinterConfigurationModel import PrinterConfigurationModel
+from cura.PrinterOutput.Models.PrinterOutputModel import PrinterOutputModel
 from cura.PrinterOutput.NetworkedPrinterOutputDevice import NetworkedPrinterOutputDevice, AuthState
 from cura.PrinterOutput.PrinterOutputDevice import ConnectionType, ConnectionState
 # pylint:disable=relative-beyond-top-level
@@ -32,13 +33,14 @@ from .messages.PrintJobUploadProgressMessage import PrintJobUploadProgressMessag
 from .messages.PrintJobUploadSuccessMessage import PrintJobUploadSuccessMessage
 from .messages.SetTargetTemperatureErrorMessage import SetTargetTemperatureErrorMessage
 from .models.MPSM2PrintJobOutputModel import MPSM2PrintJobOutputModel
-from .models.MPSM2PrinterOutputModel import MPSM2PrinterOutputModel
 from .models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
 from .network.ApiClient import ApiClient
 from .parsers.GcodePreheatSettingsParser import GcodePreheatSettingsParser
 from .parsers.MPSM2PrinterStatusParser import MPSM2PrinterStatusParser
 
 I18N_CATALOG = i18nCatalog('cura')
+# Monoprice Select Mini V2 printer has a single extruder.
+_NUM_EXTRUDERS = 1
 
 
 class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
@@ -106,7 +108,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
         self._on_increased_upload_speed_error)
 
   @pyqtProperty(QObject, notify=printerStatusChanged)
-  def printer(self) -> MPSM2PrinterOutputModel:
+  def printer(self) -> PrinterOutputModel:
     """Produces main object for rendering the Printer Monitor tab."""
     return self._printer_output_model
 
@@ -304,7 +306,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     if self._job_upload_message.visible:
       PrintJobUploadBlockedMessage().show()
       return
-    if self._printer_output_model.get_printer_state() == 'printing':
+    if self._printer_output_model.state == 'printing':
       PrintJobUploadIsPrintingMessage().show()
       return
     self.writeStarted.emit(self)
@@ -529,8 +531,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
 
   @staticmethod
   def _build_printer_conf_model() -> PrinterConfigurationModel:
-    """Returns printer's configuration model.
-    """
+    """Returns printer's configuration model."""
     printer_configuration_model = PrinterConfigurationModel()
     extruder_conf_model = ExtruderConfigurationModel()
     extruder_conf_model.setPosition(0)
@@ -538,11 +539,11 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     printer_configuration_model.setPrinterType('type')
     return printer_configuration_model
 
-  def _build_printer_output_model(self) -> MPSM2PrinterOutputModel:
-    """Returns printer Output Model for this device.
-    """
-    printer_output_model = MPSM2PrinterOutputModel(
-        self._printer_output_controller)
+  def _build_printer_output_model(self) -> PrinterOutputModel:
+    """Returns printer Output Model for this device."""
+    printer_output_model = PrinterOutputModel(
+        output_controller=self._printer_output_controller,
+        number_of_extruders=_NUM_EXTRUDERS)
     printer_output_model.updateKey(self._address)
     printer_output_model.updateName(self.address)
     printer_output_model.updateState('idle')
