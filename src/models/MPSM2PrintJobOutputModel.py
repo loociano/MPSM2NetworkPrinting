@@ -16,7 +16,7 @@ from ..utils import TimeUtils
 _POLL_INTERVAL_MILLIS = 100
 _MIN_PERCENT_POINTS = 2  # Minimum points to calculate estimated time left.
 # Arbitrary maximum.
-_MAX_REMAINING_TIME_SECS = timedelta(days=1).total_seconds()
+_MAX_REMAINING_TIME_SECS = int(timedelta(days=1).total_seconds())
 
 
 class MPSM2PrintJobOutputModel(PrintJobOutputModel):
