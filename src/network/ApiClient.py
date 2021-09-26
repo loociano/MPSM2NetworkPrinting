@@ -10,6 +10,8 @@ from PyQt5.QtNetwork import QNetworkReply, QHttpPart, QNetworkRequest, \
 
 from UM.Logger import Logger
 
+_MAX_TARGET_HOTEND_TEMPERATURE = 260
+_MAX_TARGET_BED_TEMPERATURE = 85
 
 class ApiClient:
   """Monoprice Select Mini REST API client."""
@@ -162,9 +164,8 @@ class ApiClient:
       on_finished: Callback after request completes.
       on_error: Callback if the request fails.
     """
-    # TODO: extract constants.
-    if celsius < 0 or celsius > 260:
-      Logger.log('e', 'Target hotend temperature out of range')
+    if celsius < 0 or celsius > _MAX_TARGET_HOTEND_TEMPERATURE:
+      Logger.log('e', 'Target hotend temperature out of range.')
       return
     reply = self._network_manager.get(
         self._create_empty_request('/set?cmd={{C:T{:04d}}}'.format(celsius)))
@@ -181,9 +182,8 @@ class ApiClient:
       on_finished: Callback after request completes.
       on_error: Callback if the request fails.
     """
-    # TODO: extract constants.
-    if celsius < 0 or celsius > 85:
-      Logger.log('e', 'Target bed temperature out of range')
+    if celsius < 0 or celsius > _MAX_TARGET_BED_TEMPERATURE:
+      Logger.log('e', 'Target bed temperature out of range.')
       return
     reply = self._network_manager.get(
         self._create_empty_request('/set?cmd={{C:P{:03d}}}'.format(celsius)))
@@ -219,7 +219,6 @@ class ApiClient:
         if on_error is not None:
           on_error()
         return
-
       on_finished(self._parse_reply(reply))
 
     reply.finished.connect(parse)
@@ -234,5 +233,5 @@ class ApiClient:
     try:
       return bytes(reply.readAll()).decode()
     except (UnicodeDecodeError, ValueError) as err:
-      Logger.logException('e', 'Could not parse the printer response: %s', err)
+      Logger.logException('e', 'Could not parse the printer response: %s.', err)
       return err
