@@ -22,8 +22,8 @@ class GCodeWriteFileJob(WriteFileJob):
     super().__init__(file_handler.getWriterByMimeType('text/x-gcode'),
                      io.StringIO(), nodes,
                      FileWriter.OutputMode.TextMode)
-    self.setFileName('{}.gcode'.format(
-        CuraApplication.getInstance().getPrintInformation().jobName))
+    job_name = CuraApplication.getInstance().getPrintInformation().jobName
+    self.setFileName(f'{job_name}.gcode')
 
   def get_gcode_output(self) -> bytes:
     """Produces a readable g-code output of the model.
