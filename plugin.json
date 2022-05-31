@@ -2,7 +2,7 @@
     "name": "Network support for Monoprice Select Mini V2 printers",
     "author": "Luc Rubio",
     "description": "Network support for Monoprice Select Mini V2 printers.",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "api": 7,
     "supported_sdk_versions": [
         "7.0.0",
