@@ -4,7 +4,12 @@ Plugin is licensed under the GNU Lesser General Public License v3.0.
 """
 from typing import Callable
 
-from PyQt5.QtCore import QTimer
+try:
+  # Cura 5.0.0+.
+  from PyQt6.QtCore import QTimer
+except ImportError:
+  # Cura 4.9.1 or older.
+  from PyQt5.QtCore import QTimer
 
 from UM import i18nCatalog
 from UM.Message import Message

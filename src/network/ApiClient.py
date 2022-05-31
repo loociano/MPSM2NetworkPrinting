@@ -4,8 +4,18 @@ Plugin is licensed under the GNU Lesser General Public License v3.0.
 """
 from typing import Callable, Optional
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import QNetworkReply, QHttpPart, QNetworkRequest, QHttpMultiPart, QNetworkAccessManager
+USE_QT5 = False
+try:
+  # Cura 5.0.0+.
+  from PyQt6.QtCore import QUrl
+  from PyQt6.QtNetwork import QNetworkReply, QHttpPart, QNetworkRequest, QHttpMultiPart, QNetworkAccessManager
+  QNetworkAccessManagerOperations = QNetworkAccessManager.Operation
+except ImportError:
+  # Cura 4.9.1 or older.
+  from PyQt5.QtCore import QUrl
+  from PyQt5.QtNetwork import QNetworkReply, QHttpPart, QNetworkRequest, QHttpMultiPart, QNetworkAccessManager
+  QNetworkAccessManagerOperations = QNetworkAccessManager
+  USE_QT5 = True
 
 from UM.Logger import Logger
 
@@ -37,8 +47,13 @@ def _register_callback(reply: QNetworkReply, on_finished: Callable,
 
   def parse() -> None:
     """Parses the HTTP response."""
-    if not reply.attribute(
-        QNetworkRequest.HttpStatusCodeAttribute) or reply.error() > 0:
+    if USE_QT5:
+      http_status_code_attribute = QNetworkRequest.HttpStatusCodeAttribute
+      has_error = reply.error() > 0
+    else:
+      http_status_code_attribute = QNetworkRequest.Attribute.HttpStatusCodeAttribute
+      has_error = reply.error() != QNetworkReply.NetworkError.NoError
+    if reply.attribute(http_status_code_attribute) is None or has_error:
       Logger.log('e', 'No response received from printer.')
       if on_error:
         on_error()
@@ -234,5 +249,11 @@ class ApiClient:
     url = QUrl(f'http://{self._ip_address}{path}')
     Logger.log('d', url.toString())
     request = QNetworkRequest(url)
-    request.setAttribute(QNetworkRequest.FollowRedirectsAttribute, True)
+    if USE_QT5:
+      request.setAttribute(QNetworkRequest.FollowRedirectsAttribute, True)
+    else:
+      # FollowRedirectsAttribute was deprecated in PyQt6.
+      # https://doc.qt.io/qt-6/network-changes-qt6.html#redirect-policies.
+      request.setAttribute(QNetworkRequest.Attribute.RedirectPolicyAttribute,
+                           QNetworkRequest.RedirectPolicy.ManualRedirectPolicy)
     return request

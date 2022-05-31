@@ -5,7 +5,12 @@ Plugin is licensed under the GNU Lesser General Public License v3.0.
 from datetime import timedelta
 from typing import Optional
 
-from PyQt5.QtCore import pyqtProperty, QTimer
+try:
+  # Cura 5.0.0+.
+  from PyQt6.QtCore import pyqtProperty, QTimer
+except ImportError:
+  # Cura 4.9.1 or older.
+  from PyQt5.QtCore import pyqtProperty, QTimer
 
 # pylint:disable=import-error
 from cura.PrinterOutput import PrinterOutputController

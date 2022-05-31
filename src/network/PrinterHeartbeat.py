@@ -5,7 +5,12 @@ Plugin is licensed under the GNU Lesser General Public License v3.0.
 import time
 from http.client import HTTPConnection
 
-from PyQt5.QtCore import QThread, pyqtSignal
+try:
+  # Cura 5.0.0+.
+  from PyQt6.QtCore import QThread, pyqtSignal
+except ImportError:
+  # Cura 4.9.1 or older.
+  from PyQt5.QtCore import QThread, pyqtSignal
 
 
 _REQUEST_TIMEOUT_SECS = 2

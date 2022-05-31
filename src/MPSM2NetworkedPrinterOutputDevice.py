@@ -5,7 +5,14 @@ Plugin is licensed under the GNU Lesser General Public License v3.0.
 import os
 from typing import List, Optional
 
-from PyQt5.QtCore import pyqtProperty, pyqtSignal, QObject, pyqtSlot
+USE_QT5 = False
+try:
+  # Cura 5.0.0+.
+  from PyQt6.QtCore import pyqtProperty, pyqtSignal, QObject, pyqtSlot
+except ImportError:
+  # Cura 4.9.1 or older.
+  from PyQt5.QtCore import pyqtProperty, pyqtSignal, QObject, pyqtSlot
+  USE_QT5 = True
 
 from UM.FileHandler.FileHandler import FileHandler
 from UM.Logger import Logger
@@ -41,6 +48,7 @@ from .parsers import MPSM2PrinterStatusParser
 I18N_CATALOG = i18nCatalog('cura')
 # Monoprice Select Mini V2 printer has a single extruder.
 _NUM_EXTRUDERS = 1
+_QML_DIRECTORY = 'qml_cura4' if USE_QT5 else 'qml'
 
 
 def _build_printer_conf_model() -> PrinterConfigurationModel:
@@ -537,7 +545,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
       Logger.log('e', 'Could not get plugin path.')
       return
     self._monitor_view_qml_path = os.path.join(
-        plugin_path, 'resources', 'qml', 'MonitorStage.qml')
+        plugin_path, 'resources', _QML_DIRECTORY, 'MonitorStage.qml')
 
   def _build_printer_output_model(self) -> PrinterOutputModel:
     """Returns printer Output Model for this device."""

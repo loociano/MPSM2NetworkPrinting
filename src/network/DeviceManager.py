@@ -4,7 +4,12 @@ Plugin is licensed under the GNU Lesser General Public License v3.0.
 """
 from typing import Optional, Callable, List, cast
 
-from PyQt5.QtCore import pyqtSignal, QObject
+try:
+  # Cura 5.0.0+.
+  from PyQt6.QtCore import pyqtSignal, QObject
+except ImportError:
+  # Cura 4.9.1 or older.
+  from PyQt5.QtCore import pyqtSignal, QObject
 
 from UM import i18nCatalog
 from UM.Logger import Logger
