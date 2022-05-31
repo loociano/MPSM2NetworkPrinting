@@ -16,7 +16,6 @@ Item {
 
     MonitorIconExtruder {
         id: extruderIcon
-        color: 'orange'
         position: 0
     }
 

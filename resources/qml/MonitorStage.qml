@@ -1,11 +1,9 @@
 // Copyright 2020 Luc Rubio <luc@loociano.com>
 // Plugin is licensed under the GNU Lesser General Public License v3.0.
 import QtQuick 2.2
-import QtQuick.Controls 1.4
-import QtQuick.Controls.Styles 1.4
+import QtQuick.Controls 2.0
 import UM 1.3 as UM
 import Cura 1.0 as Cura
-import QtGraphicalEffects 1.0
 
 Component
 {
@@ -58,17 +56,15 @@ Component
                             height: UM.Theme.getSize("monitor_text_line").height
                             width: childrenRect.width
 
-                            UM.RecolorImage {
+                            Image {
                                 id: externalLinkIcon
                                 anchors {
                                     right: linkLabel.left
-                                    rightMargin: UM.Theme.getSize('narrow_margin').width
                                     verticalCenter: parent.verticalCenter
                                 }
-                                color: UM.Theme.getColor('monitor_text_link')
+                                width: 16 * screenScaleFactor
+                                height: 16 * screenScaleFactor
                                 source: UM.Theme.getIcon('external_link')
-                                width: UM.Theme.getSize('monitor_external_link_icon').width * 0.8
-                                height: UM.Theme.getSize('monitor_external_link_icon').height * 0.8
                             }
                             Label {
                                 id: linkLabel

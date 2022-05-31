@@ -5,14 +5,13 @@ import QtQuick.Controls 2.0
 import UM 1.3 as UM
 
 Item {
-    property alias color: icon.color
     property int position: 0
     property int size: 32 * screenScaleFactor
     property string iconSource: '../svg/icons/extruder.svg'
     height: size
     width: size
 
-    UM.RecolorImage {
+    Image {
         id: icon
         anchors.fill: parent
         source: iconSource

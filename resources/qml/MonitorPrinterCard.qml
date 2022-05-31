@@ -2,7 +2,6 @@
 // Plugin is licensed under the GNU Lesser General Public License v3.0.
 import QtQuick 2.3
 import QtQuick.Controls 2.0
-import QtQuick.Dialogs 1.1
 import UM 1.3 as UM
 import Cura 1.5 as Cura
 

@@ -1,7 +1,7 @@
 // Copyright 2020 Luc Rubio <luc@loociano.com>
 // Plugin is licensed under the GNU Lesser General Public License v3.0.
 import QtQuick 2.2
-import QtQuick.Controls 1.4
+import QtQuick.Controls 2.0
 import UM 1.2 as UM
 
 Item {

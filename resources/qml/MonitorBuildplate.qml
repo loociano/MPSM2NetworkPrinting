@@ -15,9 +15,8 @@ Item {
     height: 40 * screenScaleFactor
     width: childrenRect.width
 
-    UM.RecolorImage {
+    Image {
         id: buildplateIcon
-        color: UM.Theme.getColor('monitor_icon_primary')
         source: '../svg/icons/buildplate.svg'
         width: 32 * screenScaleFactor
         height: width
