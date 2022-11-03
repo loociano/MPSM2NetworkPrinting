@@ -45,6 +45,9 @@ from .network.ApiClient import ApiClient
 from .parsers import GcodePreheatSettingsParser
 from .parsers import MPSM2PrinterStatusParser
 
+MAX_TARGET_HOTEND_TEMPERATURE = MPSM2PrinterStatusModel.MAX_TARGET_HOTEND_TEMPERATURE
+MAX_TARGET_BED_TEMPERATURE = MPSM2PrinterStatusModel.MAX_TARGET_BED_TEMPERATURE
+
 I18N_CATALOG = i18nCatalog('cura')
 # Monoprice Select Mini V2 printer has a single extruder.
 _NUM_EXTRUDERS = 1
@@ -77,8 +80,6 @@ def _on_increased_upload_speed(response: str) -> None:
 
 class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   """Networked OutputDevice for Monoprice Select Mini V2 printers."""
-  MAX_TARGET_HOTEND_TEMPERATURE = 260  # celsius
-  MAX_TARGET_BED_TEMPERATURE = 85  # celsius
   NUM_DATA_POINTS = 30
 
   printerStatusChanged = pyqtSignal()
@@ -156,13 +157,13 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
   def max_hotend_temperature(self) -> int:
     """Returns maximum target hotend temperature for UI message.
     """
-    return self.MAX_TARGET_HOTEND_TEMPERATURE
+    return MAX_TARGET_HOTEND_TEMPERATURE
 
   @pyqtProperty(int, constant=True)
   def max_bed_temperature(self) -> int:
     """Returns maximum target bed temperature for UI message.
     """
-    return self.MAX_TARGET_BED_TEMPERATURE
+    return MAX_TARGET_BED_TEMPERATURE
 
   # pylint:disable=invalid-name
   @pyqtProperty(bool, notify=onPrinterUpload)
@@ -214,7 +215,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     """
     if not input_temperature.isdigit():
       return False
-    return 0 <= int(input_temperature) <= self.MAX_TARGET_HOTEND_TEMPERATURE
+    return 0 <= int(input_temperature) <= MAX_TARGET_HOTEND_TEMPERATURE
 
   @pyqtSlot(str, name='isValidBedTemperature', result=bool)
   def is_valid_bed_temperature(self, input_temperature: str) -> bool:
@@ -226,7 +227,7 @@ class MPSM2NetworkedPrinterOutputDevice(NetworkedPrinterOutputDevice):
     """
     if not input_temperature.isdigit():
       return False
-    return 0 <= int(input_temperature) <= self.MAX_TARGET_BED_TEMPERATURE
+    return 0 <= int(input_temperature) <= MAX_TARGET_BED_TEMPERATURE
 
   @pyqtSlot(str, name='setTargetHotendTemperature')
   def set_target_hotend_temperature(self, celsius: str) -> None:

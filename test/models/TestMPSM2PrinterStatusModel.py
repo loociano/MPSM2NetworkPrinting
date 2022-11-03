@@ -11,26 +11,18 @@ class MPSM2PrinterStatusModelTest(unittest.TestCase):
   def test_invalidHotendTemperature_fails(self):
     with self.assertRaises(ValueError):
       MPSM2PrinterStatusModel(hotend_temperature=-1)
-    with self.assertRaises(ValueError):
-      MPSM2PrinterStatusModel(hotend_temperature=261)
 
   def test_invalidTargetHotendTemperature_fails(self):
     with self.assertRaises(ValueError):
       MPSM2PrinterStatusModel(target_hotend_temperature=-1)
-    with self.assertRaises(ValueError):
-      MPSM2PrinterStatusModel(target_hotend_temperature=261)
 
   def test_invalidBedTemperature_fails(self):
     with self.assertRaises(ValueError):
       MPSM2PrinterStatusModel(bed_temperature=-1)
-    with self.assertRaises(ValueError):
-      MPSM2PrinterStatusModel(bed_temperature=86)
 
   def test_invalidTargetBedTemperature_fails(self):
     with self.assertRaises(ValueError):
       MPSM2PrinterStatusModel(target_bed_temperature=-1)
-    with self.assertRaises(ValueError):
-      MPSM2PrinterStatusModel(target_bed_temperature=86)
 
   def test_invalidProgress_fails(self):
     with self.assertRaises(ValueError):

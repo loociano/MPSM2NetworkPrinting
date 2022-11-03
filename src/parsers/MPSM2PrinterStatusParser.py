@@ -5,8 +5,6 @@ Plugin is licensed under the GNU Lesser General Public License v3.0.
 import re
 from typing import Optional
 
-from UM.Logger import Logger
-
 # pylint:disable=relative-beyond-top-level
 from ..models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
 
@@ -31,7 +29,7 @@ def parse(raw_response: str) -> Optional[MPSM2PrinterStatusModel]:
   """
   matches = re.match(_RESPONSE_STATUS_REGEX, raw_response)
   if not matches:
-    Logger.log('e', 'Could not parse response: %s.', raw_response)
+    # TODO: log error.
     return None
   return MPSM2PrinterStatusModel(
       hotend_temperature=int(matches.group(1)),

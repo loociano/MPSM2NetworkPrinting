@@ -21,6 +21,9 @@ from UM.Logger import Logger
 
 from ..models.MPSM2PrinterStatusModel import MPSM2PrinterStatusModel
 
+MAX_TARGET_HOTEND_TEMPERATURE = MPSM2PrinterStatusModel.MAX_TARGET_HOTEND_TEMPERATURE
+MAX_TARGET_BED_TEMPERATURE = MPSM2PrinterStatusModel.MAX_TARGET_BED_TEMPERATURE
+
 
 def _parse_reply(reply: QNetworkReply) -> str:
   """Parses the HTTP body response into string.
@@ -223,8 +226,7 @@ class ApiClient:
       on_finished: Callback after request completes.
       on_error: Callback if the request fails.
     """
-    if (temperature < 0
-        or temperature > MPSM2PrinterStatusModel.MAX_HOTEND_TEMPERATURE):
+    if temperature < 0 or temperature > MAX_TARGET_HOTEND_TEMPERATURE:
       Logger.log('e', 'Target hotend temperature out of range.')
       return
     reply = self._network_manager.get(
@@ -242,8 +244,7 @@ class ApiClient:
       on_finished: Callback after request completes.
       on_error: Callback if the request fails.
     """
-    if (temperature < 0
-        or temperature > MPSM2PrinterStatusModel.MAX_BED_TEMPERATURE):
+    if temperature < 0 or temperature > MAX_TARGET_BED_TEMPERATURE:
       Logger.log('e', 'Target bed temperature out of range.')
       return
     reply = self._network_manager.get(

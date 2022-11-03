@@ -7,9 +7,8 @@ import enum
 
 class MPSM2PrinterStatusModel:
   """Printer's Status Model."""
-
-  MAX_HOTEND_TEMPERATURE = 260  # Degrees Celsius.
-  MAX_BED_TEMPERATURE = 85  # Degrees Celsius.
+  MAX_TARGET_HOTEND_TEMPERATURE = 260  # Degrees Celsius.
+  MAX_TARGET_BED_TEMPERATURE = 85  # Degrees Celsius.
 
   class State(enum.Enum):
     """Printer State."""
@@ -30,22 +29,18 @@ class MPSM2PrinterStatusModel:
       hotend_temperature: From 0 to 260 degrees Celsius.
       target_hotend_temperature: From 0 to 260 degrees Celsius.
       bed_temperature: From 0 to 85 degrees Celsius.
-      target_bed_temperature: From 0 to 85 degrees Celcsius.
+      target_bed_temperature: From 0 to 85 degrees Celsius.
       progress: print progress percentage, from 0 to 100.
       state: state the printer is in (e.g. idle, printing).
     """
-    if (hotend_temperature < 0
-        or hotend_temperature > self.MAX_HOTEND_TEMPERATURE):
+    if hotend_temperature < 0:
       raise ValueError(f'Invalid hotend temperature: {hotend_temperature}.')
-    if (target_hotend_temperature < 0
-        or target_hotend_temperature > self.MAX_HOTEND_TEMPERATURE):
+    if target_hotend_temperature < 0:
       raise ValueError(
           f'Invalid target hotend temperature: {target_hotend_temperature}.')
-    if (bed_temperature < 0
-        or bed_temperature > self.MAX_BED_TEMPERATURE):
+    if bed_temperature < 0:
       raise ValueError(f'Invalid bed temperature: {bed_temperature}.')
-    if (target_bed_temperature < 0
-        or target_bed_temperature > self.MAX_BED_TEMPERATURE):
+    if target_bed_temperature < 0:
       raise ValueError(
           f'Invalid target bed temperature: {target_bed_temperature}')
     if progress < 0 or progress > 100:
