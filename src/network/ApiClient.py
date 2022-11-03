@@ -197,7 +197,10 @@ class ApiClient:
     # Upload is special: on_error is connected directly on reply.error
     _register_callback(reply, on_finished, None)
     reply.uploadProgress.connect(on_progress)
-    reply.error.connect(on_error)
+    if USE_QT5:
+      reply.error.connect(on_error)
+    else:
+      reply.errorOccurred.connect(on_error)
     # Prevent HTTP multi-part to be garbage-collected.
     http_multi_part.setParent(reply)
     self._upload_model_reply = reply  # Cache to cancel.
