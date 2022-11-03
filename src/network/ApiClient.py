@@ -170,20 +170,27 @@ class ApiClient:
       on_progress: Callback while file uploads.
       on_error: Callback if the request fails.
     """
+    if USE_QT5:
+      content_disposition_header = QNetworkRequest.ContentDispositionHeader
+      content_type_header = QNetworkRequest.ContentTypeHeader
+      form_data_type = QHttpMultiPart.FormDataType
+    else:
+      content_disposition_header = QNetworkRequest.KnownHeaders.ContentDispositionHeader
+      content_type_header = QNetworkRequest.KnownHeaders.ContentTypeHeader
+      form_data_type = QHttpMultiPart.ContentType.FormDataType
     http_part = QHttpPart()
-    http_part.setHeader(QNetworkRequest.ContentDispositionHeader,
+    http_part.setHeader(content_disposition_header,
                         f'form-data; name="file"; filename="{filename}"')
-    http_part.setHeader(QNetworkRequest.ContentTypeHeader,
-                        'application/octet-stream')
+    http_part.setHeader(content_type_header, 'application/octet-stream')
     http_part.setBody(payload)
 
-    http_multi_part = QHttpMultiPart(QHttpMultiPart.FormDataType)
+    http_multi_part = QHttpMultiPart(form_data_type)
     http_multi_part.append(http_part)
 
     request = self._create_empty_request('/upload')
     # Must encode bytes boundary into string!
     bytes_boundary = str(http_multi_part.boundary(), 'utf-8')
-    request.setHeader(QNetworkRequest.ContentTypeHeader,
+    request.setHeader(content_type_header,
                       f'multipart/form-data; boundary={bytes_boundary}')
 
     reply = self._network_manager.post(request, http_multi_part)
