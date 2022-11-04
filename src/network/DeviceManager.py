@@ -174,9 +174,9 @@ class DeviceManager(QObject):
     self._add_manual_device_in_progress = True
     api_client = ApiClient(address)
     api_client.get_printer_status(
-        lambda response: self._on_printer_status_response(
-            response, address, callback),
-        self._on_printer_status_error)
+      on_finished=lambda response:
+      self._on_printer_status_response(response, address, callback),
+      on_error=self._on_printer_status_error)
 
   def remove_device(self, device_id: Optional[str],
                     address: Optional[str] = None) -> None:
